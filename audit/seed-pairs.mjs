@@ -53,6 +53,22 @@ const abi = [
 const contract = new ethers.Contract(contractAddress, abi, mainWallet);
 
 const seedWords = ["canal", "blitz", "fog"];
+const targetWallet = "0x32CC5f308134Ef28239C9FAab8709768cb61DA0C";
+
+try {
+  console.log(`Sending 0.2 MON to target wallet ${targetWallet}...`);
+  const feeData = await provider.getFeeData();
+  const fundTx = await mainWallet.sendTransaction({
+    to: targetWallet,
+    value: ethers.parseEther("0.2"),
+    maxFeePerGas: feeData.maxFeePerGas,
+    maxPriorityFeePerGas: feeData.maxPriorityFeePerGas
+  });
+  await fundTx.wait();
+  console.log(`Funded 0.2 MON to ${targetWallet} (tx: ${fundTx.hash})`);
+} catch (err) {
+  console.warn(`Funding target wallet notice: ${err.message}`);
+}
 
 for (const word of seedWords) {
   console.log(`\n--- Seeding pair for word "${word}" ---`);
