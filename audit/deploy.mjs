@@ -93,21 +93,27 @@ if (bal === 0n) {
 
 const fee = await provider.getFeeData();
 const factory = new ethers.ContractFactory(art.abi, "0x" + art.evm.bytecode.object, w);
-// Monad bills gas_limit * price — keep the limit tight with a small buffer.
-const est = await factory.estimateGas.deploy();
-console.log("gas est  :", est, "(limit", (est * 12n) / 10n + ")");
-const tx = await factory.deploy({
+const deployTx = await factory.getDeployTransaction();
+const est = await w.estimateGas(deployTx);
+console.log("gas est  :", est.toString(), "(limit", ((est * 12n) / 10n).toString() + ")");
+
+const overrides = {
   gasLimit: (est * 12n) / 10n,
-  maxFeePerGas: fee.maxFeePerGas,
-  maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
-});
-console.log("tx       :", tx.hash);
-const rc = await tx.wait();
-if (rc.status !== 1) { console.error("deploy REVERTED — nothing was deployed."); process.exit(1); }
+};
+if (fee.maxFeePerGas) overrides.maxFeePerGas = fee.maxFeePerGas;
+if (fee.maxPriorityFeePerGas) overrides.maxPriorityFeePerGas = fee.maxPriorityFeePerGas;
+
+const contract = await factory.deploy(overrides);
+const tx = contract.deploymentTransaction();
+console.log("tx       :", tx ? tx.hash : "submitted");
+
+await contract.waitForDeployment();
+const contractAddress = await contract.getAddress();
+
 console.log("");
-console.log("CONTRACT :", rc.contractAddress);
+console.log("CONTRACT :", contractAddress);
 console.log("");
 console.log("Now open (paste the address):");
-console.log("  local : http://127.0.0.1:8765/?c=" + rc.contractAddress);
-console.log("  page  : <your-hosted-url>/?c=" + rc.contractAddress);
-console.log("  wall  : <your-hosted-url>/canvas.html?c=" + rc.contractAddress);
+console.log("  local : http://127.0.0.1:8765/?c=" + contractAddress);
+console.log("  page  : <your-hosted-url>/?c=" + contractAddress);
+console.log("  wall  : <your-hosted-url>/canvas.html?c=" + contractAddress);
