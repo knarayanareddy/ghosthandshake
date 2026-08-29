@@ -17,9 +17,6 @@ const require = createRequire(import.meta.url);
 const solc = require("solc");
 import { ethers } from "ethers";
 
-const RPC = (process.env.RPC_URL && process.env.RPC_URL.trim() !== "")
-  ? process.env.RPC_URL.trim()
-  : "https://testnet-rpc.monad.xyz";
 let rawPk = (process.env.PK || "").trim().replace(/^['"]|['"]$/g, "");
 if (rawPk && !rawPk.startsWith("0x") && /^[0-9a-fA-F]{64}$/i.test(rawPk)) {
   rawPk = "0x" + rawPk;
