@@ -17,11 +17,14 @@ const require = createRequire(import.meta.url);
 const solc = require("solc");
 import { ethers } from "ethers";
 
-const RPC = process.env.RPC_URL || "https://testnet-rpc.monad.xyz";
+const RPC = (process.env.RPC_URL && process.env.RPC_URL.trim() !== "")
+  ? process.env.RPC_URL.trim()
+  : "https://testnet-rpc.monad.xyz";
 const pk = process.env.PK;
 if (!pk || !/^0x[0-9a-fA-F]{64}$/i.test(pk)) {
-  console.error("Set PK to a 0x-prefixed 64-char HEX PRIVATE KEY (not an address):");
-  console.error("  PK=0x... node deploy.mjs");
+  console.error("ERROR: GH_DEPLOY_PK is missing or invalid!");
+  console.error("Must be a 0x-prefixed 64-character HEX PRIVATE KEY (not a public address).");
+  console.error("Example format: 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef");
   process.exit(1);
 }
 
