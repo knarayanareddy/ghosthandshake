@@ -1,0 +1,23 @@
+name: Seed pairs (testnet wall)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm --prefix audit install --no-audit --no-fund
+      - name: Seed Pairs
+        env:
+          PK: ${{ secrets.GH_DEPLOY_PK }}
+          RPC_URL: ${{ vars.GH_RPC_URL }}
+          CONTRACT_ADDRESS: "0xBd051598e1beC7f450bbe26e8b98A680Adde0d4b"
+        run: node audit/seed-pairs.mjs
