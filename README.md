@@ -41,8 +41,9 @@ forge test
 `.github/workflows/deploy-pages.yml` deploys `web/` to Pages on every push to `main`.
 One-time activation (repo admin): **Settings → Pages → Source: “GitHub Actions”**.
 
-- Play: `https://knarayanareddy.github.io/ghosthandshake/?c=0xCONTRACT`
-- Wall: `https://knarayanareddy.github.io/ghosthandshake/canvas.html?c=0xCONTRACT`
+- Play: `https://knarayanareddy.github.io/ghosthandshake/?c=0xBd051598e1beC7f450bbe26e8b98A680Adde0d4b`
+- Wall: `https://knarayanareddy.github.io/ghosthandshake/canvas.html?c=0xBd051598e1beC7f450bbe26e8b98A680Adde0d4b`
+- Contract: `0xBd051598e1beC7f450bbe26e8b98A680Adde0d4b` (Monad Testnet 10143)
 
 ## Builder agents
 
