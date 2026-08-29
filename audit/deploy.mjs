@@ -20,11 +20,18 @@ import { ethers } from "ethers";
 const RPC = (process.env.RPC_URL && process.env.RPC_URL.trim() !== "")
   ? process.env.RPC_URL.trim()
   : "https://testnet-rpc.monad.xyz";
-const pk = process.env.PK;
+let rawPk = (process.env.PK || "").trim().replace(/^['"]|['"]$/g, "");
+if (rawPk && !rawPk.startsWith("0x") && /^[0-9a-fA-F]{64}$/i.test(rawPk)) {
+  rawPk = "0x" + rawPk;
+}
+const pk = rawPk;
 if (!pk || !/^0x[0-9a-fA-F]{64}$/i.test(pk)) {
   console.error("ERROR: GH_DEPLOY_PK is missing or invalid!");
-  console.error("Must be a 0x-prefixed 64-character HEX PRIVATE KEY (not a public address).");
-  console.error("Example format: 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef");
+  console.error(`Received length: ${pk ? pk.length : 0} characters.`);
+  if (pk) {
+    console.error(`Prefix received: "${pk.slice(0, 6)}..."`);
+  }
+  console.error("Must be a 64-character HEX PRIVATE KEY (66 characters including 0x prefix).");
   process.exit(1);
 }
 
