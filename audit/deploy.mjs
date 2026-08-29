@@ -41,10 +41,22 @@ const art = out.contracts["GhostHandshake.sol"]["GhostHandshake"];
 
 const provider = new ethers.JsonRpcProvider(RPC);
 const w = new ethers.Wallet(pk, provider);
+// Safety: only deploy from the wallet that actually holds the MON.
+// (Public address, not a secret — override with EXPECT_ADDRESS=0x… if you
+//  deploy from a different funded wallet.)
+const expect = process.env.EXPECT_ADDRESS || "0x94CAC88F29d1370757B052a410B785cfE10F7bB1";
 const bal = await provider.getBalance(w.address);
 console.log("rpc      :", RPC);
 console.log("deployer :", w.address);
 console.log("balance  :", ethers.formatEther(bal), "MON");
+if (w.address.toLowerCase() !== expect.toLowerCase()) {
+  console.error("");
+  console.error("STOP — derived address does not match the funded wallet.");
+  console.error(`  key      -> ${w.address}`);
+  console.error(`  expected -> ${expect}`);
+  console.error("Nothing was sent. Set EXPECT_ADDRESS=0x… if this key is intentional.");
+  process.exit(1);
+}
 if (bal === 0n) {
   console.error("No MON for this wallet. Claim first: https://faucet.monad.xyz (and/or Devnads claim).");
   process.exit(1);
