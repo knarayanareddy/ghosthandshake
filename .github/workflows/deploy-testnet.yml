@@ -1,0 +1,22 @@
+name: Deploy GhostHandshake (testnet)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm --prefix audit install --no-audit --no-fund
+      - name: Deploy
+        env:
+          PK: ${{ secrets.GH_DEPLOY_PK }}
+          RPC_URL: ${{ vars.GH_RPC_URL }}
+        run: node audit/deploy.mjs
