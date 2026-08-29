@@ -225,22 +225,28 @@
       localStorage.setItem("gh_secret", JSON.stringify({ word, salt, commitHash }));
       const tx = await gh.commit(commitHash);
       note("commit " + tx.hash.slice(0, 12));
-      await tx.wait();
+      const rc = await tx.wait();
+      if (rc.status !== 1) return note("commit reverted on chain — nothing was set. try again.");
       note("committed " + word + " (keep this phone)");
     };
 
     $("reveal").onclick = async () => {
+      if (!gh) return note("set contract address");
       const raw = localStorage.getItem("gh_secret");
       if (!raw) return note("no local secret — commit on this device");
       const { word, salt } = JSON.parse(raw);
       const tx = await gh.reveal(word, salt);
       note("reveal " + tx.hash.slice(0, 12));
-      await tx.wait();
+      const rc = await tx.wait();
+      if (rc.status !== 1) return note("reveal reverted on chain — window expired, or the secret is not on this device.");
+      note("revealed — waiting for your partner");
     };
 
     $("cancel").onclick = async () => {
+      if (!gh) return note("set contract address");
       const tx = await gh.cancel(me);
-      await tx.wait();
+      const rc = await tx.wait();
+      if (rc.status !== 1) return note("cancel reverted — the window may still be open. wait, then try again.");
       note("cancelled");
     };
   </script>

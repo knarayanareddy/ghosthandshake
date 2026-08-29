@@ -36,6 +36,14 @@ Play: http://127.0.0.1:8765/ · Wall: http://127.0.0.1:8765/canvas.html
 forge test
 ```
 
+## Hosting (GitHub Pages)
+
+`.github/workflows/deploy-pages.yml` deploys `web/` to Pages on every push to `main`.
+One-time activation (repo admin): **Settings → Pages → Source: “GitHub Actions”**.
+
+- Play: `https://knarayanareddy.github.io/ghosthandshake/?c=0xCONTRACT`
+- Wall: `https://knarayanareddy.github.io/ghosthandshake/canvas.html?c=0xCONTRACT`
+
 ## Builder agents
 
 **`START.md` first**, then `HANDOVER.md` → `AGENT_MONAD.md` → `AGENT_UI.md` → `AGENT_BLITZ.md`.
