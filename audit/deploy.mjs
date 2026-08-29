@@ -42,7 +42,29 @@ const out = JSON.parse(
 for (const e of out.errors ?? []) if (e.severity === "error") { console.error(e.formattedMessage); process.exit(1); }
 const art = out.contracts["GhostHandshake.sol"]["GhostHandshake"];
 
-const provider = new ethers.JsonRpcProvider(RPC);
+const candidateRPCs = (process.env.RPC_URL && process.env.RPC_URL.trim() !== "")
+  ? [process.env.RPC_URL.trim(), "https://testnet-rpc.monad.xyz", "https://rpc.ankr.com/monad_testnet"]
+  : ["https://testnet-rpc.monad.xyz", "https://rpc.ankr.com/monad_testnet"];
+
+let provider;
+let RPC;
+for (const rpcUrl of candidateRPCs) {
+  try {
+    const testProvider = new ethers.JsonRpcProvider(rpcUrl);
+    await testProvider.getBlockNumber();
+    provider = testProvider;
+    RPC = rpcUrl;
+    break;
+  } catch (e) {
+    console.warn(`RPC endpoint warning (${rpcUrl}): ${e.message}`);
+  }
+}
+
+if (!provider) {
+  console.error("ERROR: Unable to connect to any Monad Testnet RPC endpoint.");
+  process.exit(1);
+}
+
 const w = new ethers.Wallet(pk, provider);
 // Safety: only deploy from the wallet that actually holds the MON.
 // (Public address, not a secret — override with EXPECT_ADDRESS=0x… if you
