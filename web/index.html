@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GHOST HANDSHAKE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --fog: #D5DDE4;
+      --ink: #1A222C;
+      --mist: #8A9AAB;
+      --glass: #F4F7F9;
+      --phos: #4A7C74;
+      --signal: #C45C2A;
+      --line: #B7C3CE;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--fog); color: var(--ink);
+      font-family: "IBM Plex Sans", Helvetica, sans-serif;
+      min-height: 100vh; padding: 1.25rem 1.25rem 2.5rem;
+    }
+    h1 {
+      font-family: Fraunces, Georgia, serif; font-weight: 400;
+      font-size: 1.75rem; margin: 0 0 0.25rem; letter-spacing: -0.02em;
+    }
+    .sub { color: var(--mist); font-size: 0.85rem; margin-bottom: 1.25rem; }
+    .words { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin: 0.8rem 0 1.2rem; }
+    .word {
+      border: 1px solid var(--ink); background: var(--glass);
+      padding: 0.7rem 0.6rem; font-family: Fraunces, serif; font-size: 1.15rem;
+      cursor: pointer; text-align: left;
+    }
+    .word.sel { background: var(--ink); color: var(--glass); }
+    .word.dead { opacity: 0.35; pointer-events: none; text-decoration: line-through; }
+    button {
+      border: 1px solid var(--ink); background: var(--ink); color: var(--glass);
+      font-family: inherit; padding: 0.65rem 1rem; margin: 0.2rem 0.2rem 0.2rem 0;
+      cursor: pointer; font-size: 0.9rem;
+    }
+    button.ghost { background: transparent; color: var(--ink); }
+    button.phos { background: var(--phos); border-color: var(--phos); color: #f4f7f9; }
+    input {
+      width: 100%; border: 0; border-bottom: 1px solid var(--ink);
+      background: transparent; padding: 0.4rem 0; margin: 0.4rem 0 0.8rem;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; color: var(--ink);
+    }
+    h2 { font-size: 0.68rem; letter-spacing: 0.16em; color: var(--mist); font-weight: 500; margin: 1.4rem 0 0.4rem; }
+    .flash {
+      display: none; border: 1px solid var(--phos); padding: 0.8rem; margin: 0.8rem 0;
+      font-family: Fraunces, serif;
+    }
+    .flash.on { display: block; }
+    .board { font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; line-height: 1.55; }
+    .stat { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--mist); }
+    details { margin-top: 1.5rem; font-size: 0.8rem; color: var(--mist); }
+  </style>
+</head>
+<body>
+  <h1>Ghost Handshake</h1>
+  <p class="sub">Pick a word. Don’t say it. Find the stranger who picked the same one.</p>
+
+  <div class="stat"><span>you</span><span id="me">—</span></div>
+  <div class="stat"><span>window</span><span>~10 min from commit</span></div>
+
+  <h2>WORD</h2>
+  <div class="words" id="words"></div>
+
+  <button type="button" id="connect">Connect</button>
+  <button type="button" class="phos" id="commit">Commit</button>
+  <button type="button" class="ghost" id="reveal">Reveal</button>
+  <button type="button" class="ghost" id="cancel">Cancel mine</button>
+
+  <div class="flash" id="flash"></div>
+
+  <h2>LEADERBOARD</h2>
+  <div class="board" id="lb">no bonds yet</div>
+
+  <h2>LOG</h2>
+  <div class="board" id="log"></div>
+
+  <details>
+    <summary>Contract</summary>
+    <input id="addr" placeholder="GhostHandshake address" />
+    <button type="button" class="ghost" id="save">Use address</button>
+  </details>
+
+  <script type="module">
+    import { BrowserProvider, Contract, keccak256, toUtf8Bytes, solidityPackedKeccak256, hexlify, randomBytes } from "https://esm.sh/ethers@6.13.4";
+    import { WORDS } from "./words.js";
+
+    const ABI = [
+      "function commit(bytes32 commitHash)",
+      "function reveal(string word, bytes32 salt)",
+      "function cancel(address player)",
+      "function handshakeCount(address) view returns (uint256)",
+      "function wordClaimed(bytes32) view returns (bool)",
+      "function retireWords() view returns (bool)",
+      "function totalPairs() view returns (uint256)",
+      "function getAllPairs() view returns (tuple(address a, address b, bytes32 wordHash, uint64 matchedAtBlock)[])",
+      "event Committed(address indexed player, bytes32 commitHash, uint64 atBlock)",
+      "event Revealed(address indexed player, bytes32 wordHash)",
+      "event Matched(address indexed a, address indexed b, bytes32 wordHash, uint256 pairIndex, uint64 atBlock)",
+    ];
+
+    const CHAIN = {
+      chainId: "0x279f",
+      chainName: "Monad Testnet",
+      nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
+      rpcUrls: ["https://testnet-rpc.monad.xyz"],
+      blockExplorerUrls: ["https://testnet.monadvision.com"],
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const note = (t) => { $("log").textContent = t + "\n" + $("log").textContent; };
+
+    function contractFromQuery() {
+      const q = new URLSearchParams(location.search).get("c");
+      return (q && q.startsWith("0x") && q.length === 42) ? q : "";
+    }
+
+    let provider, signer, me, gh, selected = WORDS[0];
+    const counts = new Map();
+
+    function renderWords(claimed = new Set()) {
+      const el = $("words");
+      el.innerHTML = "";
+      WORDS.forEach((w) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "word" + (w === selected ? " sel" : "") + (claimed.has(w) ? " dead" : "");
+        b.textContent = w;
+        b.onclick = () => { selected = w; renderWords(claimed); };
+        el.appendChild(b);
+      });
+    }
+    renderWords();
+
+    async function ensureChain() {
+      try {
+        await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: CHAIN.chainId }] });
+      } catch (e) {
+        if (e.code === 4902) await window.ethereum.request({ method: "wallet_addEthereumChain", params: [CHAIN] });
+        else throw e;
+      }
+    }
+
+    function hashCommit(word, salt) {
+      return solidityPackedKeccak256(["string", "bytes32"], [word, salt]);
+    }
+    function wordHash(word) {
+      return keccak256(toUtf8Bytes(word));
+    }
+
+    $("connect").onclick = async () => {
+      await ensureChain();
+      provider = new BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      signer = await provider.getSigner();
+      me = await signer.getAddress();
+      $("me").textContent = me.slice(0, 6) + "…" + me.slice(-4);
+      const a = contractFromQuery() || localStorage.getItem("gh_addr") || $("addr").value.trim();
+      if (a) { $("addr").value = a; wire(a); }
+    };
+
+    $("save").onclick = () => {
+      localStorage.setItem("gh_addr", $("addr").value.trim());
+      wire($("addr").value.trim());
+    };
+
+    function wire(a) {
+      gh = new Contract(a, ABI, signer);
+      gh.on("Matched", (a1, b1, wh, idx) => {
+        note(`MATCH #${idx} ${a1.slice(0, 6)} × ${b1.slice(0, 6)}`);
+        if (me && (a1.toLowerCase() === me.toLowerCase() || b1.toLowerCase() === me.toLowerCase())) {
+          $("flash").classList.add("on");
+          $("flash").textContent = `You matched with ${(a1.toLowerCase() === me.toLowerCase() ? b1 : a1).slice(0, 10)}…`;
+        }
+        bump(a1); bump(b1); paintLb();
+      });
+      refreshClaimed();
+      refreshLb();
+    }
+
+    function bump(addr) {
+      counts.set(addr.toLowerCase(), (counts.get(addr.toLowerCase()) || 0) + 1);
+    }
+
+    async function refreshLb() {
+      if (!gh) return;
+      try {
+        const pairs = await gh.getAllPairs();
+        counts.clear();
+        for (const p of pairs) { bump(p.a); bump(p.b); }
+        paintLb();
+      } catch (e) { note("getAllPairs " + (e.shortMessage || e.message)); }
+    }
+
+    function paintLb() {
+      const rows = [...counts.entries()].sort((x, y) => y[1] - x[1]).slice(0, 5);
+      $("lb").textContent = rows.length
+        ? rows.map(([a, n], i) => `${i + 1}. ${a.slice(0, 8)}…  ${n}`).join("\n")
+        : "no bonds yet";
+    }
+
+    async function refreshClaimed() {
+      if (!gh) return;
+      try {
+        if (!(await gh.retireWords())) return;
+        const dead = new Set();
+        for (const w of WORDS) {
+          if (await gh.wordClaimed(wordHash(w))) dead.add(w);
+        }
+        renderWords(dead);
+      } catch {}
+    }
+
+    $("commit").onclick = async () => {
+      if (!gh) return note("set contract address");
+      const salt = hexlify(randomBytes(32));
+      const word = selected;
+      const commitHash = hashCommit(word, salt);
+      localStorage.setItem("gh_secret", JSON.stringify({ word, salt, commitHash }));
+      const tx = await gh.commit(commitHash);
+      note("commit " + tx.hash.slice(0, 12));
+      await tx.wait();
+      note("committed " + word + " (keep this phone)");
+    };
+
+    $("reveal").onclick = async () => {
+      const raw = localStorage.getItem("gh_secret");
+      if (!raw) return note("no local secret — commit on this device");
+      const { word, salt } = JSON.parse(raw);
+      const tx = await gh.reveal(word, salt);
+      note("reveal " + tx.hash.slice(0, 12));
+      await tx.wait();
+    };
+
+    $("cancel").onclick = async () => {
+      const tx = await gh.cancel(me);
+      await tx.wait();
+      note("cancelled");
+    };
+  </script>
+</body>
+</html>
