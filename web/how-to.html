@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ghost Handshake — a field guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --fog: #D5DDE4; --ink: #1A222C; --mist: #8A9AAB; --glass: #F4F7F9;
+      --phos: #4A7C74; --signal: #C45C2A; --line: #B7C3CE; --night: #0E151C;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--fog); color: var(--ink); overflow: hidden;
+      font-family: "IBM Plex Sans", Helvetica, Arial, sans-serif; }
+    .deck { position: relative; width: 100%; height: 100%; }
+    .slide {
+      position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
+      padding: 4vh 6vw; opacity: 0; visibility: hidden; transform: translateY(8px);
+      transition: opacity 150ms ease, transform 150ms ease, visibility 0s linear 150ms;
+    }
+    .slide.on { opacity: 1; visibility: visible; transform: none; transition: opacity 150ms ease, transform 150ms ease; }
+    .slide.dark { background: var(--night); color: var(--fog); }
+    .inner { width: 100%; max-width: 1080px; margin: 0 auto; }
+    h1 { font-family: Fraunces, Georgia, serif; font-weight: 400; font-size: clamp(2.6rem, 7vw, 5rem);
+      letter-spacing: -0.02em; margin: 0 0 0.25em; line-height: 1.02; }
+    h2 { font-family: Fraunces, Georgia, serif; font-weight: 400; font-size: clamp(1.8rem, 4vw, 2.8rem);
+      letter-spacing: -0.01em; margin: 0 0 0.4em; line-height: 1.05; }
+    .kicker { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--phos); margin: 0 0 1.2rem; }
+    .dark .kicker { color: #6FA79C; }
+    .sub { color: var(--mist); font-size: clamp(0.95rem, 1.6vw, 1.15rem); max-width: 46ch; margin: 0.5em 0 0; line-height: 1.5; }
+    .dark .sub { color: #93A3B2; }
+    .lede { font-size: clamp(1.05rem, 2vw, 1.35rem); line-height: 1.5; max-width: 52ch; margin: 0.4em 0 0; }
+    .lede em { font-style: normal; color: var(--phos); font-weight: 500; }
+    .dark .lede em { color: #7FB3A8; }
+    .mono { font-family: "IBM Plex Mono", monospace; font-size: 0.82em; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+    @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; gap: 1.5rem; } }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 1.8rem; }
+    @media (max-width: 860px) { .cards { grid-template-columns: 1fr; } }
+    .card { background: var(--glass); border: 1px solid var(--line); padding: 1.1rem 1.1rem 1.2rem; }
+    .card b { font-family: Fraunces, serif; font-weight: 600; font-size: 1.05rem; display: block; margin-bottom: 0.35rem; }
+    .card p { margin: 0; font-size: 0.9rem; line-height: 1.5; color: #3D4B59; }
+    .card .n { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--phos); letter-spacing: 0.15em; }
+    /* flow */
+    .flow { display: flex; gap: 0.5rem; margin-top: 2rem; flex-wrap: wrap; }
+    .step { flex: 1 1 150px; background: var(--glass); border: 1px solid var(--line); padding: 1rem; position: relative; min-width: 150px; }
+    .step .n { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--signal); letter-spacing: 0.15em; }
+    .step b { font-family: Fraunces, serif; font-weight: 600; display: block; font-size: 1.1rem; margin: 0.3rem 0 0.3rem; }
+    .step p { margin: 0; font-size: 0.83rem; line-height: 1.45; color: #3D4B59; }
+    .step:not(:last-child)::after { content: "→"; position: absolute; right: -0.85rem; top: 50%; transform: translateY(-50%);
+      color: var(--mist); font-size: 1.1rem; z-index: 1; }
+    @media (max-width: 860px) { .step:not(:last-child)::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -1.5rem; transform: none; } .flow { flex-direction: column; } }
+    /* words */
+    .words { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; margin-top: 1.6rem; max-width: 720px; }
+    @media (max-width: 700px) { .words { grid-template-columns: repeat(2, 1fr); } }
+    .word { border: 1px solid var(--ink); background: var(--glass); padding: 0.8rem 0.7rem;
+      font-family: Fraunces, serif; font-size: 1.25rem; text-align: left; }
+    .word.sel { background: var(--ink); color: var(--glass); }
+    /* code */
+    pre.code { font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; line-height: 1.6; background: var(--glass);
+      border: 1px solid var(--line); padding: 1.1rem 1.3rem; overflow-x: auto; margin: 1.2rem 0 0; white-space: pre; }
+    .dark pre.code { background: #131C25; border-color: #24313D; color: #C9D6E0; }
+    pre.code .c { color: var(--mist); } pre.code .k { color: var(--phos); } pre.code .s { color: var(--signal); }
+    /* table */
+    table.trouble { width: 100%; border-collapse: collapse; margin-top: 1.4rem; font-size: 0.86rem; }
+    table.trouble td { border-top: 1px solid var(--line); padding: 0.65rem 0.8rem 0.65rem 0; vertical-align: top; line-height: 1.45; }
+    table.trouble td:first-child { font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; color: var(--signal); width: 34%; }
+    table.trouble td:nth-child(2) { width: 33%; color: #3D4B59; }
+    table.trouble tr:last-child td { border-bottom: 1px solid var(--line); }
+    @media (max-width: 860px) { table.trouble td { display: block; width: 100%; border-top: none; } table.trouble tr { border-top: 1px solid var(--line); padding: 0.4rem 0; } }
+    /* flash */
+    .flash { border: 1px solid var(--phos); background: #EDF4F1; padding: 1.4rem 1.5rem; margin-top: 1.6rem; max-width: 480px; }
+    .flash b { font-family: Fraunces, serif; font-weight: 600; font-size: 1.25rem; display: block; }
+    .flash span { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; color: #3D4B59; display: block; margin-top: 0.4rem; }
+    /* QR */
+    .qrwrap { display: flex; gap: 2.2rem; margin-top: 1.8rem; flex-wrap: wrap; }
+    .qr { text-align: center; }
+    .qr .box { background: #fff; border: 1px solid var(--line); padding: 0.55rem; display: inline-block; }
+    .qr svg { display: block; width: 190px; height: 190px; }
+    @media (max-width: 700px) { .qr svg { width: 150px; height: 150px; } }
+    .qr .lbl { font-family: Fraunces, serif; font-size: 1rem; margin-top: 0.6rem; }
+    .qr .url { font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--mist); word-break: break-all; max-width: 200px; margin: 0.3rem auto 0; line-height: 1.5; }
+    /* wall canvas */
+    #wallc { width: 100%; height: auto; display: block; margin-top: 1.2rem; }
+    .hud { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; color: #93A3B2; margin-top: 0.8rem; }
+    .hud b { font-family: Fraunces, serif; font-size: 1.2rem; font-weight: 400; color: var(--fog); display: block; margin-bottom: 0.25rem; }
+    /* nav */
+    .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--phos); width: 0%; z-index: 10; transition: width 150ms ease; }
+    .nav { position: fixed; bottom: 1.4rem; right: 2rem; z-index: 10; display: flex; align-items: center; gap: 0.6rem; }
+    .nav button { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; background: transparent; color: inherit;
+      border: 1px solid currentColor; padding: 0.45rem 0.8rem; cursor: pointer; }
+    .nav button:hover { border-color: var(--phos); color: var(--phos); }
+    .nav .cnt { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.12em; color: var(--mist); }
+    .dots { position: fixed; bottom: 1.9rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.45rem; z-index: 10; }
+    .dots i { width: 7px; height: 7px; border: 1px solid var(--mist); cursor: pointer; }
+    .dots i.on { background: var(--phos); border-color: var(--phos); }
+    .tiny { font-size: 0.78rem; color: var(--mist); line-height: 1.6; margin-top: 1.6rem; max-width: 70ch; }
+    .tiny a { color: var(--phos); }
+    .big-url { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; word-break: break-all; background: var(--glass);
+      border: 1px dashed var(--line); padding: 0.7rem 0.9rem; margin-top: 1rem; max-width: 640px; line-height: 1.6; }
+    ul.tight { margin: 0.6rem 0 0; padding-left: 1.1rem; line-height: 1.75; font-size: 0.98rem; }
+    ul.tight li b { font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 · cover -->
+  <section class="slide">
+    <div class="inner">
+      <p class="kicker">Monad Blitz Amsterdam · Les Lokaal · 29 Aug 2026</p>
+      <h1>Ghost<br>Handshake</h1>
+      <p class="sub">Pick a word. Don’t say it. Find the stranger who picked the same one.<br>
+      <span style="color:var(--mist)">— a field guide to playing, in full detail.</span></p>
+    </div>
+  </section>
+
+  <!-- 2 · what is it -->
+  <section class="slide">
+    <div class="inner">
+      <p class="kicker">What this is</p>
+      <h2>A secret-word ritual, settled on-chain.</h2>
+      <div class="cards">
+        <div class="card"><span class="n">01 · THE RITUAL</span><b>Two strangers, one word.</b>
+          <p>You and a partner each pick one of eight words without telling the other. If you picked the same one, the chain will know — and so will you, instantly.</p></div>
+        <div class="card"><span class="n">02 · THE CHAIN</span><b>Commit–reveal on Monad.</b>
+          <p>Your word is hashed on Monad Testnet before reveal. Nobody — not you, not the builder, not the network — can read it or change it in between.</p></div>
+        <div class="card"><span class="n">03 · THE WALL</span><b>Every bond draws a glyph.</b>
+          <p>Each match adds one permanent, deterministic stroke to a shared canvas called Afterimage. It only grows. It never erases.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · the loop -->
+  <section class="slide">
+    <div class="inner">
+      <p class="kicker">The whole game</p>
+      <h2>Five moves. That’s the entire thing.</h2>
+      <div class="flow">
+        <div class="step"><span class="n">MOVE 1</span><b>Pick a word</b><p>One of eight. In your head. Say nothing.</p></div>
+        <div class="step"><span class="n">MOVE 2</span><b>Commit</b><p>Your word’s hash goes on-chain. The word itself goes nowhere.</p></div>
+        <div class="step"><span class="n">MOVE 3</span><b>Partner picks</b><p>They connect, pick their own word — hopefully the same one.</p></div>
+        <div class="step"><span class="n">MOVE 4</span><b>Both reveal</b><p>Within ~10 minutes of your commit. Second reveal closes the bond.</p></div>
+        <div class="step"><span class="n">MOVE 5</span><b>Bond + glyph</b><p>Flash on your screen, name on the leaderboard, new stroke on the wall.</p></div>
+      </div>
+      <p class="sub" style="margin-top:1.6rem">Total cost per round: a few dollars’ worth of <span class="mono">MON</span> testnet gas. Total time: under three minutes.</p>
+    </div>
+  </section>
+
+  <!-- 4 · before you play -->
+  <section class="slide">
+    <div class="inner grid2">
+      <div>
+        <p class="kicker">Before you play · ~2 minutes</p>
+        <h2>Two things in your pocket.</h2>
+        <ul class="tight">
+          <li><b>A wallet</b> — MetaMask (browser or phone) works. Coinbase Wallet, Rabby, any EVM wallet.</li>
+          <li><b>Some MON</b> — testnet only, zero value, from <span class="mono">faucet.monad.xyz</span> or the event claim at Devnads. Ten MON is a lifetime supply.</li>
+          <li><b>The network</b> — you don’t set this up. Pressing <b>Connect</b> adds Monad Testnet (chain 10143) to your wallet automatically.</li>
+        </ul>
+      </div>
+      <div>
+        <pre class="code"><span class="c"># the only numbers you need</span>
+Network   Monad Testnet
+Chain ID  <span class="s">10143</span>  (0x279f)
+Symbol    MON
+Faucet    faucet.monad.xyz
+Contract  <span class="k">0xBd05…0d4b</span>  <span class="c"># already wired in —</span>
+            <span class="c"># you never type it</span></pre>
+        <p class="tiny">The play URL carries the contract address in <span class="mono">?c=…</span>, so there is no setup screen, no address to paste. Open → Connect → play.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · connect -->
+  <section class="slide">
+    <div class="inner grid2">
+      <div>
+        <p class="kicker">Step 1 · Connect</p>
+        <h2>One button does the plumbing.</h2>
+        <ul class="tight">
+          <li>Open the play URL (QR is on slide 13 — or it’s on the screen behind you).</li>
+          <li>Press <b>Connect</b>. MetaMask opens.</li>
+          <li>If Monad Testnet isn’t in your wallet yet, MetaMask offers to <b>add it</b> — accept. Then approve the connection.</li>
+          <li>Top-left of the page, “you” now shows your shortened address, e.g. <span class="mono">0x94CA…7bB1</span>.</li>
+        </ul>
+      </div>
+      <div>
+        <pre class="code"><span class="c">// what the page just did</span>
+1.  wallet_switchEthereumChain(0x279f)
+    <span class="c">    → not added? adds it with the</span>
+    <span class="c">    correct RPC + explorer, once</span>
+2.  eth_requestAccounts
+3.  wires the contract from ?c=
+    <span class="c">    → every button is now live</span></pre>
+        <p class="tiny">If the wallet popup gets refused or cancelled, nothing is lost — press Connect again. The word grid is already live below the buttons.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · pick a word -->
+  <section class="slide">
+    <div class="inner">
+      <p class="kicker">Step 2 · The word</p>
+      <h2>Pick one. Don’t say it.</h2>
+      <div class="words">
+        <div class="word">canal</div><div class="word sel">blitz</div><div class="word">parallel</div><div class="word">monad</div>
+        <div class="word">ghost</div><div class="word">tulip</div><div class="word">amstel</div><div class="word">fog</div>
+      </div>
+      <p class="lede" style="margin-top:1.8rem">Eight words, deliberately few: in a room of forty people, <em>somebody</em> will pick what you picked. You just have to find them — or let them find you.</p>
+      <p class="tiny">Tap a tile to select (it inverts). Your choice lives only in this browser tab — it never touches the network until you press Commit.</p>
+    </div>
+  </section>
+
+  <!-- 7 · commit -->
+  <section class="slide">
+    <div class="inner grid2">
+      <div>
+        <p class="kicker">Step 3 · Commit</p>
+        <h2>Your word goes into a hash. Only the hash goes on-chain.</h2>
+        <ul class="tight">
+          <li>Press <b>Commit</b>. Your wallet asks to sign one transaction (~0.01 MON).</li>
+          <li>The log says <span class="mono">committed fog (keep this phone)</span> — the secret is stored in <em>this browser only</em> (localStorage). A different phone can’t reveal for you.</li>
+          <li>A clock starts: the reveal window is <b>~10 minutes</b> (2,000 blocks at ~300–400 ms each).</li>
+        </ul>
+      </div>
+      <div>
+        <pre class="code"><span class="c"># in your browser, right now</span>
+salt  = randomBytes(32)          <span class="c">// 256 bits of luck</span>
+hash  = keccak256(word ‖ salt)   <span class="c">// packed</span>
+commit(hash)  ──────────────►  Monad
+
+<span class="c"># on-chain, permanently</span>
+commitments[you] = hash
+<span class="c"># the word itself: nowhere. not in the</span>
+<span class="c"># tx, not in the event, not recoverable</span>
+<span class="c"># by anyone before reveal.</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · coordinate + reveal -->
+  <section class="slide">
+    <div class="inner">
+      <p class="kicker">Step 4 · The reveal</p>
+      <h2>Tell them you picked a word. Not which one.</h2>
+      <div class="cards">
+        <div class="card"><span class="n">YOU</span><b>“I committed.”</b><p>Your partner — the stranger you suspect shares your word — connects, picks their word, commits. They’re under the same ~10-minute window from <em>their</em> commit.</p></div>
+        <div class="card"><span class="n">BOTH</span><b>Press Reveal.</b><p>Reveal sends your word + salt. The contract recomputes <span class="mono">keccak(word‖salt)</span> and checks it against your commit. Wrong word? It reverts. That’s the whole trick.</p></div>
+        <div class="card"><span class="n">THEN</span><b>First waits, second closes.</b><p>The first person to reveal parks on-chain and waits. The second matching reveal mints the pair, fires <span class="mono">Matched</span>, and both screens light up.</p></div>
+      </div>
+      <p class="sub" style="margin-top:1.4rem">Miss the window? Your reveal reverts with a clear log line — you just commit fresh and go again. Nothing is lost but a little gas.</p>
+    </div>
+  </section>
+
+  <!-- 9 · match -->
+  <section class="slide">
+    <div class="inner grid2">
+      <div>
+        <p class="kicker">Step 5 · The match</p>
+        <h2>This is the moment.</h2>
+        <div class="flash">
+          <b>You matched with 0x0aC7…ae1c…</b>
+          <span>LOG → MATCH #3 0x94CA… × 0x0aC7…</span>
+          <span>LEADERBOARD → both addresses tick up to 1 bond</span>
+        </div>
+        <p class="sub" style="margin-top:1.4rem">No confetti, no fanfare — a 150&nbsp;ms ease, then the fact of it. You now know this stranger’s word was yours. The chain has the timestamp.</p>
+      </div>
+      <div>
+        <pre class="code"><span class="c"># Matched event, on-chain</span>
+Matched(
+  a        = <span class="k">0x94CA…7bB1</span>,
+  b        = <span class="k">0x0aC7…ae1c</span>,
+  wordHash = 0x9f1c…44aa,   <span class="c">// fog</span>
+  pairIndex= 3,
+  atBlock  = 57944801
+)
+<span class="c"># close the laptop:</span>
+<span class="c"># getAllPairs() still lists who found whom.</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · the wall -->
+  <section class="slide dark">
+    <div class="inner">
+      <p class="kicker">Afterimage · the wall</p>
+      <h2 style="color:var(--fog)">Every bond leaves a mark.</h2>
+      <canvas id="wallc" width="1200" height="640" aria-label="The Afterimage wall: dark canvas with glowing strokes"></canvas>
+      <div class="hud"><b>Afterimage</b>6 strangers, 3 bonds.</div>
+      <p class="sub" style="margin-top:1rem">Open <span class="mono" style="color:#7FB3A8">/canvas.html</span> — no wallet, no login. Each bond draws one stroke whose position and colour are <em style="color:#7FB3A8">deterministic</em> from the pair (same two addresses, same word, same block → same stroke, on every screen, forever). The picture only grows.</p>
+    </div>
+  </section>
+
+  <!-- 11 · when things go wrong -->
+  <section class="slide">
+    <div class="inner">
+      <p class="kicker">When things go wrong</p>
+      <h2>Every failure says exactly what it means.</h2>
+      <table class="trouble">
+        <tr><td>no local secret — commit on this device</td><td>You pressed Reveal in a browser that never committed.</td><td>Commit here first — the secret lives in the browser that made it.</td></tr>
+        <tr><td>commit reverted on chain — nothing was set. try again.</td><td>You already have an active commitment (one per address).</td><td>Wait it out, Cancel after the window, or use a fresh wallet.</td></tr>
+        <tr><td>reveal reverted on chain — window expired, or the secret is not on this device.</td><td>More than ~10 min (2000 blocks) passed since commit, or the word/salt don’t match.</td><td>Commit fresh and reveal quickly. It’s one small transaction.</td></tr>
+        <tr><td>cancel reverted — the window may still be open. wait, then try again.</td><td>Cancel only unlocks <em>after</em> the reveal window closes.</td><td>Wait a few minutes and retry — or just let it expire naturally.</td></tr>
+      </table>
+      <p class="tiny">Watch the LOG panel: every step, hash and outcome is written there. Reverts cost gas (Monad bills <span class="mono">gas_limit × price</span>), which is why the app checks every receipt instead of pretending success.</p>
+    </div>
+  </section>
+
+  <!-- 12 · under the hood -->
+  <section class="slide">
+    <div class="inner grid2">
+      <div>
+        <p class="kicker">Under the hood · for the technicals</p>
+        <h2>Small on purpose.</h2>
+        <pre class="code">commit(bytes32)      <span class="c"># 1 active commitment / address</span>
+reveal(string,bytes32)<span class="c"># checks keccak(word‖salt)</span>
+cancel(address)      <span class="c"># permissionless, post-window</span>
+
+<span class="k">REVEAL_WINDOW</span> = 2000 blocks   <span class="c"># strict &gt;: +2000 still valid</span>
+<span class="k">no block.timestamp</span>     <span class="c"># Monad executes async</span>
+<span class="k">no external calls</span>      <span class="c"># no reentrancy, ever</span></pre>
+      </div>
+      <div>
+        <ul class="tight">
+          <li><b>Contract:</b> <span class="mono">0xBd051598e1beC7f450bbe26e8b98A680Adde0d4b</span> · Monad Testnet 10143</li>
+          <li><b>Source of truth:</b> <span class="mono">getAllPairs()</span> — the wall, the leaderboard, and any auditor read the same list.</li>
+          <li><b>Verified:</b> 27-check end-to-end audit (JS↔Solidity hash identity, the +2000-block boundary, expiry, cancel) — see <span class="mono">audit/</span> in the repo.</li>
+          <li><b>Economics:</b> <span class="mono">gas_paid = gas_limit × price_per_gas</span> — so every tx here keeps its limit tight.</li>
+        </ul>
+        <p class="tiny">Explorer: <a class="mono" href="https://testnet.monadvision.com/address/0xBd051598e1beC7f450bbe26e8b98A680Adde0d4b" target="_blank" rel="noopener">testnet.monadvision.com/address/0xBd05…0d4b</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · try it now -->
+  <section class="slide">
+    <div class="inner">
+      <p class="kicker">Try it right now</p>
+      <h2>Two phones. Three minutes.</h2>
+      <div class="qrwrap">
+        <div class="qr">
+          <div class="box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h45v45H0z"/><path stroke="#000000" d="M2 2.5h7m2 0h1m1 0h2m2 0h1m1 0h5m2 0h4m2 0h1m1 0h1m1 0h7M2 3.5h1m5 0h1m3 0h1m3 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m2 0h1m5 0h1M2 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m3 0h3m1 0h3m1 0h2m1 0h4m1 0h1m1 0h1m1 0h3m1 0h1M2 5.5h1m1 0h3m1 0h1m1 0h1m3 0h2m1 0h2m3 0h2m1 0h2m1 0h1m7 0h1m1 0h3m1 0h1M2 6.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h2m1 0h3m1 0h1m2 0h5m1 0h1m1 0h3m1 0h1M2 7.5h1m5 0h1m1 0h3m1 0h1m3 0h2m2 0h3m4 0h4m3 0h1m5 0h1M2 8.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 9.5h1m1 0h1m2 0h4m2 0h1m1 0h2m1 0h1m1 0h2M2 10.5h1m1 0h5m2 0h5m1 0h1m1 0h1m4 0h1m1 0h6m1 0h1m2 0h5M3 11.5h1m1 0h1m4 0h3m1 0h4m1 0h4m2 0h1m1 0h1m2 0h5m5 0h2M3 12.5h1m3 0h2m1 0h1m7 0h1m7 0h6m2 0h2m1 0h1m3 0h1M3 13.5h2m2 0h1m3 0h3m2 0h2m3 0h6m2 0h1m3 0h2m3 0h2M2 14.5h2m1 0h1m2 0h2m2 0h2m4 0h5m1 0h1m1 0h4m1 0h1m1 0h3m3 0h3M3 15.5h2m2 0h1m4 0h1m2 0h1m11 0h1m1 0h1m5 0h1m1 0h3m1 0h2M2 16.5h8m1 0h2m1 0h1m1 0h3m1 0h1m1 0h2m1 0h2m2 0h1m3 0h3m1 0h3M2 17.5h1m1 0h2m4 0h1m3 0h3m1 0h2m4 0h2m1 0h1m1 0h1m1 0h1m4 0h1m2 0h1m1 0h2M2 18.5h4m1 0h3m1 0h3m1 0h1m1 0h1m2 0h1m1 0h2m1 0h2m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m2 0h2M3 19.5h2m4 0h3m4 0h2m2 0h1m3 0h1m1 0h1m1 0h3m1 0h1m3 0h4m2 0h1M3 20.5h1m1 0h1m2 0h1m2 0h1m1 0h2m5 0h3m1 0h2m6 0h3m1 0h1m1 0h1M2 21.5h1m1 0h1m2 0h1m2 0h3m1 0h1m1 0h1m9 0h1m1 0h4m4 0h1m1 0h1m2 0h1M2 22.5h1m1 0h1m1 0h3m1 0h1m3 0h1m2 0h1m2 0h2m1 0h2m1 0h1m5 0h1m2 0h1m2 0h2m1 0h2M6 23.5h1m6 0h1m1 0h5m1 0h3m1 0h1m2 0h1m1 0h2m1 0h5m1 0h1m1 0h2M2 24.5h1m1 0h1m1 0h4m1 0h1m1 0h2m1 0h1m3 0h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h1m3 0h1M2 25.5h3m2 0h1m3 0h1m1 0h5m3 0h3m2 0h1m1 0h2m2 0h3m3 0h3m1 0h1M3 26.5h1m4 0h1m4 0h2m1 0h1m2 0h1m1 0h1m2 0h2m1 0h2m2 0h1m3 0h3m1 0h1M7 27.5h1m1 0h1m1 0h4m1 0h1m4 0h1m1 0h1m1 0h1m4 0h1m1 0h2m4 0h2m1 0h2M2 28.5h1m4 0h2m4 0h2m1 0h2m2 0h1m1 0h3m3 0h2m1 0h2m1 0h1m3 0h1m3 0h1M3 29.5h2m1 0h2m1 0h2m1 0h1m4 0h1m2 0h1m2 0h2m1 0h1m6 0h2m4 0h1m1 0h1M3 30.5h1m2 0h1m1 0h1m6 0h2m2 0h1m1 0h1m5 0h3m1 0h1m1 0h4m2 0h2M2 31.5h4m1 0h1m1 0h1m2 0h1m2 0h1m1 0h3m2 0h2m2 0h1m1 0h2m1 0h1m5 0h2m2 0h1M2 32.5h1m2 0h1m2 0h2m2 0h3m3 0h1m1 0h2m1 0h2m5 0h1m1 0h5m3 0h1M2 33.5h1m1 0h4m6 0h1m1 0h1m1 0h5m3 0h2m1 0h1m1 0h1m3 0h3m3 0h1M2 34.5h1m2 0h1m1 0h4m1 0h1m2 0h3m1 0h1m1 0h4m1 0h1m1 0h2m2 0h1m1 0h5m1 0h3M10 35.5h1m1 0h1m2 0h6m1 0h2m3 0h3m4 0h1m3 0h1m2 0h2M2 36.5h7m2 0h3m4 0h2m1 0h1m1 0h1m1 0h6m1 0h1m1 0h1m1 0h1m1 0h1M2 37.5h1m5 0h1m1 0h1m1 0h1m2 0h1m2 0h3m2 0h2m2 0h1m1 0h4m1 0h1m3 0h1m2 0h1M2 38.5h1m1 0h3m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m2 0h3m2 0h1m1 0h2m3 0h7M2 39.5h1m1 0h3m1 0h1m1 0h1m3 0h3m1 0h4m1 0h3m1 0h1m2 0h1m4 0h1m1 0h1m2 0h1m1 0h1M2 40.5h1m1 0h3m1 0h1m1 0h5m1 0h4m2 0h3m2 0h3m2 0h1m2 0h4m2 0h1M2 41.5h1m5 0h1m3 0h4m1 0h2m2 0h3m1 0h2m2 0h2m3 0h1m1 0h1m1 0h4M2 42.5h7m1 0h2m1 0h1m1 0h1m5 0h2m1 0h1m1 0h6m1 0h1m2 0h3m1 0h1"/></svg></div>
+          <div class="lbl">Play</div>
+          <div class="url">knarayanareddy.github.io/ghosthandshake/?c=0xBd05…0d4b</div>
+        </div>
+        <div class="qr">
+          <div class="box"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h45v45H0z"/><path stroke="#000000" d="M2 2.5h7m2 0h2m1 0h1m1 0h1m2 0h1m2 0h3m1 0h4m3 0h1m2 0h7M2 3.5h1m5 0h1m6 0h1m1 0h2m1 0h2m1 0h1m1 0h1m3 0h1m2 0h1m1 0h1m1 0h1m5 0h1M2 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h1m1 0h3m1 0h1M2 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m1 0h2m1 0h2m1 0h1m2 0h4m2 0h2m2 0h1m1 0h3m1 0h1M2 6.5h1m1 0h3m1 0h1m1 0h2m5 0h1m2 0h6m1 0h1m2 0h5m1 0h1m1 0h3m1 0h1M2 7.5h1m5 0h1m1 0h1m3 0h1m4 0h1m2 0h3m4 0h4m3 0h1m5 0h1M2 8.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 9.5h2m1 0h3m1 0h2m4 0h2m1 0h1m1 0h2M2 10.5h1m1 0h5m2 0h1m1 0h1m2 0h4m4 0h1m1 0h6m1 0h1m2 0h5M3 11.5h1m1 0h1m4 0h1m6 0h6m2 0h1m1 0h1m2 0h9m1 0h2M2 12.5h2m1 0h2m1 0h3m2 0h1m1 0h1m2 0h2m6 0h6m2 0h1m2 0h2m3 0h1M4 13.5h1m2 0h1m1 0h2m3 0h1m5 0h7m2 0h1m3 0h3m1 0h1m1 0h1m1 0h1M4 14.5h2m1 0h2m1 0h1m2 0h1m1 0h1m2 0h2m1 0h1m2 0h1m2 0h5m1 0h1m2 0h1m2 0h2M2 15.5h1m4 0h1m2 0h1m2 0h1m1 0h1m2 0h2m3 0h1m2 0h2m1 0h2m2 0h3m1 0h3m1 0h2M2 16.5h1m1 0h1m1 0h1m1 0h2m1 0h1m2 0h3m1 0h1m2 0h5m6 0h2m1 0h1m1 0h3m1 0h1M2 17.5h1m7 0h1m4 0h1m1 0h1m1 0h1m6 0h1m2 0h2m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1M2 18.5h1m3 0h1m1 0h3m2 0h4m3 0h1m2 0h2m1 0h2m1 0h3m2 0h2m1 0h1m2 0h2M4 19.5h1m1 0h2m2 0h2m1 0h2m2 0h3m3 0h1m2 0h1m1 0h2m1 0h1m1 0h1m2 0h5m1 0h1M2 20.5h2m1 0h1m1 0h2m1 0h1m4 0h2m2 0h1m2 0h5m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1M5 21.5h3m1 0h5m1 0h1m1 0h4m1 0h1m3 0h2m1 0h5m2 0h1m1 0h2m1 0h1M2 22.5h4m2 0h1m5 0h2m2 0h1m4 0h2m1 0h1m1 0h2m1 0h1m3 0h1m1 0h2m1 0h3M2 23.5h1m2 0h3m1 0h1m1 0h1m1 0h5m1 0h5m1 0h1m4 0h7m4 0h2M2 24.5h3m1 0h1m1 0h1m2 0h2m1 0h4m2 0h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h1m1 0h4M4 25.5h1m1 0h1m4 0h2m8 0h1m1 0h1m2 0h1m1 0h2m2 0h4m4 0h3M2 26.5h1m2 0h4m2 0h1m2 0h1m1 0h2m1 0h1m4 0h2m1 0h2m2 0h1m3 0h1m5 0h1M2 27.5h3m1 0h1m2 0h5m1 0h3m3 0h1m1 0h1m1 0h1m4 0h1m1 0h2m2 0h4M5 28.5h4m1 0h3m1 0h1m4 0h1m2 0h3m3 0h2m1 0h2m1 0h3m1 0h1m3 0h1M2 29.5h3m2 0h1m1 0h1m2 0h1m2 0h3m2 0h1m2 0h2m1 0h1m6 0h3m1 0h3m1 0h1M2 30.5h1m1 0h3m1 0h7m4 0h1m1 0h2m4 0h3m1 0h1m1 0h2m1 0h1m2 0h3M2 31.5h2m5 0h2m1 0h4m1 0h1m1 0h2m1 0h2m2 0h1m1 0h2m1 0h1m5 0h2m3 0h1M2 32.5h1m5 0h1m2 0h2m3 0h2m2 0h2m1 0h3m1 0h1m1 0h2m1 0h5m3 0h1M2 33.5h1m1 0h2m6 0h1m2 0h1m1 0h4m3 0h1m2 0h3m2 0h1m2 0h3M2 34.5h1m1 0h1m1 0h1m1 0h2m2 0h2m1 0h1m6 0h2m5 0h1m3 0h6m1 0h2M10 35.5h1m2 0h4m1 0h1m4 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m3 0h1m1 0h3M2 36.5h7m3 0h3m3 0h1m1 0h4m1 0h1m3 0h1m3 0h2m1 0h1m1 0h1M2 37.5h1m5 0h1m1 0h2m1 0h2m1 0h3m5 0h1m3 0h1m2 0h4m3 0h2m1 0h1M2 38.5h1m1 0h3m1 0h1m1 0h3m1 0h1m3 0h1m1 0h2m1 0h1m2 0h1m2 0h1m1 0h1m2 0h7M2 39.5h1m1 0h3m1 0h1m1 0h3m2 0h2m4 0h5m1 0h1m2 0h1m1 0h4m1 0h1m2 0h2M2 40.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m5 0h3m2 0h3m2 0h8M2 41.5h1m5 0h1m2 0h3m3 0h1m2 0h4m1 0h2m2 0h2m3 0h1m1 0h1m1 0h1m1 0h2M2 42.5h7m1 0h1m3 0h2m4 0h3m1 0h1m1 0h6m1 0h1m2 0h3"/></svg></div>
+          <div class="lbl">The wall</div>
+          <div class="url">knarayanareddy.github.io/ghosthandshake/canvas.html?c=0xBd05…0d4b</div>
+        </div>
+      </div>
+      <div class="big-url">https://knarayanareddy.github.io/ghosthandshake/?c=0xBd051598e1beC7f450bbe26e8b98A680Adde0d4b</div>
+      <p class="tiny"><b>Host demo (3 min):</b> ① put the Play QR on the big screen · ② you pick a word, Commit — “this word is now nowhere” · ③ a volunteer commits the <em>same</em> word on their phone · ④ both press Reveal · ⑤ cut to the wall — a new stroke appears, and it stays.</p>
+    </div>
+  </section>
+
+  <!-- 14 · colophon -->
+  <section class="slide">
+    <div class="inner">
+      <p class="kicker">Colophon</p>
+      <h2>Built in one day, at Les Lokaal.</h2>
+      <p class="lede">One contract (<span class="mono">156 lines</span>), two pages, zero servers. Close the laptop: <em>getAllPairs()</em> still lists who found whom.</p>
+      <p class="tiny">
+        <a href="https://github.com/knarayanareddy/ghosthandshake" target="_blank" rel="noopener">github.com/knarayanareddy/ghosthandshake</a> —
+        contract · 27-check audit harness · CI (Pages + testnet deploy) · docs written as agent handoffs.<br>
+        Ghost Handshake × Afterimage — Monad Blitz Amsterdam, 29 August 2026.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<div class="dots" id="dots"></div>
+<div class="nav">
+  <button id="prev" aria-label="Previous slide">←</button>
+  <span class="cnt" id="cnt">01 / 14</span>
+  <button id="next" aria-label="Next slide">→</button>
+</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+  var i = 0;
+  var dots = document.getElementById("dots");
+  slides.forEach(function (_, n) {
+    var d = document.createElement("i");
+    d.addEventListener("click", function () { go(n); });
+    dots.appendChild(d);
+  });
+
+  function go(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (s, m) { s.classList.toggle("on", m === i); });
+    Array.prototype.forEach.call(dots.children, function (d, m) { d.classList.toggle("on", m === i); });
+    document.getElementById("cnt").textContent =
+      String(i + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+    document.getElementById("prog").style.width = ((i + 1) / slides.length * 100) + "%";
+    if (history.replaceState) history.replaceState(null, "", "#s" + (i + 1));
+    if (slides[i].querySelector("#wallc") && !slides[i].dataset.painted) {
+      slides[i].dataset.painted = "1";
+      paintWall();
+    }
+  }
+
+  document.getElementById("prev").addEventListener("click", function () { go(i - 1); });
+  document.getElementById("next").addEventListener("click", function () { go(i + 1); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); go(i + 1); }
+    if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(i - 1); }
+    if (e.key === "Home") go(0);
+    if (e.key === "End") go(slides.length - 1);
+  });
+  // tap right/left half to advance (mobile)
+  document.addEventListener("click", function (e) {
+    if (e.target.closest(".nav, .dots, a, button")) return;
+    go(e.clientX > innerWidth / 2 ? i + 1 : i - 1);
+  });
+
+  // The wall: three deterministic-looking glyph strokes, real palette
+  function paintWall() {
+    var c = document.getElementById("wallc");
+    var ctx = c.getContext("2d");
+    var W = c.width, H = c.height;
+    ctx.fillStyle = "#0E151C";
+    ctx.fillRect(0, 0, W, H);
+    // faint stars
+    var seed = 7;
+    function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+    for (var s = 0; s < 90; s++) {
+      ctx.fillStyle = "rgba(213,221,228," + (0.04 + rnd() * 0.10) + ")";
+      ctx.fillRect(rnd() * W, rnd() * H, 1.4, 1.4);
+    }
+    var strokes = [
+      { x1: 180, y1: 430, x2: 520, y2: 210, mx: 130, my: -90, hue: 168 },
+      { x1: 610, y1: 470, x2: 980, y2: 300, mx: -110, my: 70, hue: 182 },
+      { x1: 330, y1: 150, x2: 860, y2: 520, mx: 90, my: 120, hue: 174 }
+    ];
+    strokes.forEach(function (st, k) {
+      var phos = "hsla(" + st.hue + ", 28%, " + (38 + k * 5) + "%, 0.85)";
+      var rust = "hsla(" + (18 + k * 5) + ", 55%, 48%, 0.9)";
+      ctx.strokeStyle = phos;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(st.x1, st.y1);
+      ctx.quadraticCurveTo((st.x1 + st.x2) / 2 + st.mx, (st.y1 + st.y2) / 2 + st.my, st.x2, st.y2);
+      ctx.stroke();
+      var ends = [[st.x1, st.y1, phos], [st.x2, st.y2, k === 1 ? rust : phos]];
+      if (k === 2) ends.push([(st.x1 + st.x2) / 2 + st.mx * 0.5, (st.y1 + st.y2) / 2 + st.my * 0.5, rust]);
+      ends.forEach(function (p) {
+        ctx.fillStyle = p[2];
+        ctx.fillRect(p[0] - 7, p[1] - 7, 14, 14);
+      });
+    });
+  }
+
+  var start = 0;
+  var m = location.hash.match(/^#s(\d+)$/);
+  if (m) start = Math.min(slides.length - 1, Math.max(0, parseInt(m[1], 10) - 1));
+  go(start);
+</script>
+</body>
+</html>
