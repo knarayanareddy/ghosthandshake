@@ -1,0 +1,14 @@
+NARRATION SCRIPT — "The Sketchbook Comes Alive"
+Storybook narration, one line per scene, timed to the 61.4 s cut.
+Clip starts (absolute, seconds): see offsets below. Max ~6.5 s per line.
+
+#  START  LINE
+1  0.9   It began quietly, with a sketchbook full of drawings... and one pencil with very big ideas.
+2  7.0   With a single sweeping line, the pencil came alive — and sketched a friend to watch it work.
+3  13.3  Not every drawing stayed friendly. This one had teeth... and somebody's Monday got much more interesting.
+4  20.6  Then the fan switched on — and the whole story took flight, one page at a time.
+5  26.9  Why walk when you can fly? One brave passenger... one paper airplane... first class.
+6  34.1  Down the hall, a patient fisherman waited, for the smallest catch of the day.
+7  40.5  The coffee, however, did not expect to be stirred. Nobody ever expects the coffee.
+8  46.8  When the work is done, take your vacation where you find it: one radio, one umbrella, no worries.
+9  53.9  And in the end... the big reveal. Every little character, together at last. The end — until the next page.

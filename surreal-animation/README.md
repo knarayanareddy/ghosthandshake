@@ -5,7 +5,9 @@ drawings in a spiral notebook leap off the page and collide with the photoreal
 world. Seamless 2D-pencil-sketch × 3D-photo integration, realistic camera work,
 an original orchestrated soundtrack, film grain and a warm cinematic grade.
 
-**Final deliverable:** `sketchbook_comes_alive_9x16.mp4` (H.264 + AAC, ~45 MB)
+**Final deliverables:**
+- `sketchbook_comes_alive_9x16_narrated.mp4` — with storybook narration (default)
+- `sketchbook_comes_alive_9x16.mp4` — music-only cut
 
 ## Shot list
 
@@ -32,6 +34,18 @@ melody) plus foley-style SFX per scene: page flutters, pencil scratches, the
 monster's growl and cartoon boings, fan wind, water plips, a rotating coffee
 whirl (auto-panned), spoon clinks, shaker groove and a finale glissando —
 tanh saturation, vinyl crackle, 1.2 s fade-in / 2.6 s fade-out.
+
+## Narration
+
+`narration/script.txt` holds nine storybook lines, one per scene. They were
+generated with a TTS narrator (`mix_narration.py` references the cast voice),
+fitted to the cut with gentle `atempo` (1.15–1.22×) and placed so every line
+starts inside its scene. `mix_narration.py` then ducks the music ~8 dB under
+speech (0.35 s ramps) and muxes `sketchbook_comes_alive_9x16_narrated.mp4`:
+
+```bash
+python3 mix_narration.py   # needs narration/line*.mp3 + build/soundtrack.wav
+```
 
 ## Rebuild
 
