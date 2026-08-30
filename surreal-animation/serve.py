@@ -16,7 +16,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def _resolve(self):
         name = self.path.split('?')[0].split('#')[0]
         if name == '/':
-            name = '/index.html'
+            name = '/diorama/index.html'          # land directly on the 3D diorama
         path = os.path.normpath(os.path.join(ROOT, name.lstrip('/')))
         if not path.startswith(ROOT):
             return None
