@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import {
   hatchMaterial, addOutline, shadowMesh,
-  cupFaceTexture, whirlTexture, noteTexture, bubbleTexture, pageTexture,
+  cupFaceTexture, whirlTexture, noteTexture, bubbleTexture, pageTexture, addLineOutline,
 } from './hatch.js';
 
 const DARK = 0x2f2b25;
@@ -53,7 +53,7 @@ function buildMonster() {
     pos.setXYZ(i, v.x, v.y, v.z);
   }
   bodyGeo.computeVertexNormals();
-  const body = sketched(bodyGeo, { outline: 0.016, boil: 0.012 });
+  const body = sketched(bodyGeo, { outline: 0.013, boil: 0.012 });
   placed(g, body, 0, 0.62, 0);
   // extra fur shells (transparent inverted hulls)
   addOutline(body, { thickness: 0.028, opacity: 0.28, boil: 0.03 });
@@ -61,11 +61,11 @@ function buildMonster() {
 
   // face
   const face = new THREE.Group();
-  placed(g, face, 0, 0.78, 0.22);
-  const eyeL = placed(face, googly(0.105, 0.014), -0.21, 0.16, 0.30);
-  const eyeR = placed(face, googly(0.105, 0.014), 0.21, 0.16, 0.30);
+  placed(g, face, 0, 0.78, 0.42);
+  const eyeL = placed(face, googly(0.105, 0.014), -0.21, 0.16, 0.34);
+  const eyeR = placed(face, googly(0.105, 0.014), 0.21, 0.16, 0.34);
   const mouth = new THREE.Group();
-  placed(face, mouth, 0, -0.24, 0.26);
+  placed(face, mouth, 0, -0.24, 0.38);
   const cave = new THREE.Mesh(new THREE.SphereGeometry(0.26, 20, 14), basicMat(0x241f1a));
   cave.scale.set(1.15, 0.9, 0.55);
   mouth.add(cave);
@@ -83,11 +83,11 @@ function buildMonster() {
   const armL = placed(g, new THREE.Mesh(armGeo, limbMat), -0.52, 0.72, 0.12);
   const armR = placed(g, new THREE.Mesh(armGeo, limbMat), 0.52, 0.72, 0.12);
   armL.rotation.z = 0.9; armR.rotation.z = -0.9;
-  addOutline(armL, { thickness: 0.01 }); addOutline(armR, { thickness: 0.01 });
+  addLineOutline(armL, { opacity: 0.7 }); addLineOutline(armR, { opacity: 0.7 });
   const legGeo = new THREE.CapsuleGeometry(0.07, 0.16, 6, 12);
   const legL = placed(g, new THREE.Mesh(legGeo, limbMat), -0.2, 0.14, 0.05);
   const legR = placed(g, new THREE.Mesh(legGeo, limbMat), 0.2, 0.14, 0.05);
-  addOutline(legL, { thickness: 0.01 }); addOutline(legR, { thickness: 0.01 });
+  addLineOutline(legL, { opacity: 0.7 }); addLineOutline(legR, { opacity: 0.7 });
 
   g.userData.shadow = { sx: 1.15, sz: 0.85 };
 
@@ -148,12 +148,12 @@ function buildFish() {
   fin.rotation.z = -Math.PI / 2;
   fin.position.set(0.1, 0, 0);
   tail.add(fin);
-  addOutline(fin, { thickness: 0.008 });
+  addLineOutline(fin, { angle: 40, opacity: 0.8 });
   const dorsal = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.16, 8), hatchMaterial({ boil: 0.006 }));
   dorsal.scale.set(0.25, 1, 1);
   dorsal.position.set(-0.02, 0.24, 0);
   holder.add(dorsal);
-  addOutline(dorsal, { thickness: 0.008 });
+  addLineOutline(dorsal, { angle: 40, opacity: 0.8 });
 
   const eyeL = placed(holder, googly(0.07, 0.010), -0.16, 0.07, 0.14);
   const eyeR = placed(holder, googly(0.07, 0.010), -0.16, 0.07, -0.14);
@@ -215,19 +215,19 @@ function buildCup() {
     [0.02, 0], [0.28, 0.015], [0.38, 0.10], [0.42, 0.34],
     [0.44, 0.56], [0.44, 0.64], [0.385, 0.66], [0.345, 0.62],
   ].map(([r, y]) => new THREE.Vector2(r, y));
-  const cup = sketched(new THREE.LatheGeometry(prof, 30), { outline: 0.013, boil: 0.004 });
+  const cup = sketched(new THREE.LatheGeometry(prof, 30), { outline: 0.008, boil: 0.004 });
   placed(g, cup, 0, 0.01, 0);
 
   const handle = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.042, 10, 22, Math.PI * 1.2), hatchMaterial({ boil: 0.004 }));
   handle.position.set(0.47, 0.38, 0);
   handle.rotation.z = -Math.PI / 2 - (Math.PI * 1.2 - Math.PI) / 2;
   g.add(handle);
-  addOutline(handle, { thickness: 0.01 });
+  addLineOutline(handle, { angle: 50, opacity: 0.85 });
 
   const calmTex = cupFaceTexture(false), surTex = cupFaceTexture(true);
   const faceMat = new THREE.MeshBasicMaterial({ map: calmTex, transparent: true, depthWrite: false });
-  const face = new THREE.Mesh(new THREE.SphereGeometry(0.452, 24, 16, -0.62, 1.24, 0.9, 1.15), faceMat);
-  face.position.y = 0.01;
+  const face = new THREE.Mesh(new THREE.SphereGeometry(0.452, 24, 16, Math.PI - 0.62, 1.24, 0.9, 1.15), faceMat);
+  face.position.y = 0.02;
   g.add(face);
 
   const whirlGrp = new THREE.Group();
@@ -287,7 +287,7 @@ function buildBird() {
   const S = { loop: -1 };
   const HOME = { x: 0.15, y: 1.5, z: -1.15 };
 
-  const body = sketched(new THREE.SphereGeometry(0.17, 20, 14), { outline: 0.012, boil: 0.005 });
+  const body = sketched(new THREE.SphereGeometry(0.17, 20, 14), { outline: 0.011, boil: 0.005 });
   body.scale.set(1, 0.95, 1.25);
   g.add(body);
   const head = sketched(new THREE.SphereGeometry(0.115, 18, 12), { outline: 0.011, boil: 0.005 });
@@ -301,7 +301,7 @@ function buildBird() {
   tail.scale.set(1, 0.3, 1);
   tail.rotation.x = -Math.PI / 2 - 0.5;
   placed(g, tail, 0, 0.06, -0.24);
-  addOutline(tail, { thickness: 0.008 });
+  addLineOutline(tail, { angle: 40, opacity: 0.8 });
 
   const wingGeo = new THREE.SphereGeometry(0.16, 14, 10);
   const wingL = new THREE.Group(), wingR = new THREE.Group();
@@ -309,10 +309,10 @@ function buildBird() {
   placed(g, wingR, 0.13, 0.03, 0);
   const wl = new THREE.Mesh(wingGeo, hatchMaterial({ boil: 0.006 }));
   wl.scale.set(0.75, 0.16, 0.5); wl.position.x = -0.16;
-  wingL.add(wl); addOutline(wl, { thickness: 0.008 });
+  wingL.add(wl); addLineOutline(wl, { angle: 40, opacity: 0.7 });
   const wr = new THREE.Mesh(wingGeo, hatchMaterial({ boil: 0.006 }));
   wr.scale.set(0.75, 0.16, 0.5); wr.position.x = 0.16;
-  wingR.add(wr); addOutline(wr, { thickness: 0.008 });
+  wingR.add(wr); addLineOutline(wr, { angle: 40, opacity: 0.7 });
 
   g.userData.shadow = { sx: 0.4, sz: 0.35 };
 
@@ -441,7 +441,7 @@ function buildUmbrella() {
 
   const canopy = sketched(
     new THREE.SphereGeometry(0.95, 28, 10, 0, Math.PI * 2, 0, Math.PI * 0.42),
-    { outline: 0.013, boil: 0.004, ambient: 0.32, key: 0.68 });
+    { outline: 0.010, boil: 0.004, ambient: 0.30, key: 0.62, tint: 0xf4f0e4 });
   canopy.scale.y = 0.72;
   placed(tilt, canopy, 0, 1.32, 0);
   const seamPts = [];
@@ -456,7 +456,7 @@ function buildUmbrella() {
 
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.032, 1.45, 10), hatchMaterial({ boil: 0.004 }));
   placed(tilt, pole, 0, 0.68, 0);
-  addOutline(pole, { thickness: 0.009 });
+  addLineOutline(pole, { angle: 50, opacity: 0.85 });
   const handle = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.028, 8, 18, Math.PI), hatchMaterial({ boil: 0.004 }));
   handle.position.set(0, 0.05, 0);
   handle.rotation.z = Math.PI;
@@ -502,7 +502,8 @@ function buildUmbrella() {
 
 function buildNotebook() {
   const g = new THREE.Group();
-  const cover = sketched(new THREE.BoxGeometry(2.62, 0.07, 1.86), { outline: 0.011, tint: 0x9d968a, boil: 0.002 });
+  const cover = sketched(new THREE.BoxGeometry(2.62, 0.07, 1.86), { outline: 0, tint: 0x9d968a, boil: 0.002 });
+  addLineOutline(cover, { angle: 20, opacity: 0.8 });
   cover.position.y = 0.035;
   g.add(cover);
   const stack = new THREE.Mesh(new THREE.BoxGeometry(2.44, 0.05, 1.7), basicMat(0xefe9db));
@@ -544,12 +545,12 @@ function buildNotebook() {
   const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 1.15, 6), hatchMaterial({ tint: 0xf2e3b6, boil: 0.003 }));
   shaft.rotation.z = Math.PI / 2;
   pencil.add(shaft);
-  addOutline(shaft, { thickness: 0.009 });
+  addLineOutline(shaft, { angle: 40, opacity: 0.7 });
   const tip = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.16, 6), hatchMaterial({ tint: 0xe8d9c2, boil: 0.003 }));
   tip.rotation.z = -Math.PI / 2;
   tip.position.x = 0.655;
   pencil.add(tip);
-  addOutline(tip, { thickness: 0.008 });
+  addLineOutline(tip, { angle: 40, opacity: 0.7 });
   const lead = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.05, 6), basicMat(DARK));
   lead.rotation.z = -Math.PI / 2;
   lead.position.x = 0.76;
@@ -558,7 +559,7 @@ function buildNotebook() {
   eraser.rotation.z = Math.PI / 2;
   eraser.position.x = -0.62;
   pencil.add(eraser);
-  addOutline(eraser, { thickness: 0.008 });
+  addLineOutline(eraser, { angle: 40, opacity: 0.7 });
   pencil.position.set(0.18, 0.21, 0.32);
   pencil.rotation.y = 0.5;
   g.add(pencil);
@@ -581,12 +582,14 @@ function buildNotebook() {
 function buildTable() {
   const g = new THREE.Group();
   const woodOpts = { tint: 0xe8e2d4, ambient: 0.34, key: 0.66, scale: 1 / 430, boil: 0.002 };
-  const top = sketched(new THREE.BoxGeometry(7.2, 0.34, 4.9), { ...woodOpts, outline: 0.014 });
+  const top = sketched(new THREE.BoxGeometry(7.2, 0.34, 4.9), { ...woodOpts, outline: 0 });
+  addLineOutline(top, { angle: 20, opacity: 0.7 });
   top.position.y = -0.17;
   g.add(top);
   const legGeo = new THREE.BoxGeometry(0.26, 0.95, 0.26);
   for (const [lx, lz] of [[-3.1, -2.0], [3.1, -2.0], [-3.1, 2.0], [3.1, 2.0]]) {
-    const leg = sketched(legGeo, woodOpts);
+    const leg = sketched(legGeo, { ...woodOpts, outline: 0 });
+    addLineOutline(leg, { angle: 20, opacity: 0.7 });
     leg.position.set(lx, -0.82, lz);
     g.add(leg);
   }

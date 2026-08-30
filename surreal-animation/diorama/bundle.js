@@ -30209,6 +30209,14 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
     mesh.add(o);
     return o;
   }
+  function addLineOutline(mesh, { angle = 30, opacity = 0.85, color = 3485994 } = {}) {
+    const l = new LineSegments(
+      new EdgesGeometry(mesh.geometry, angle),
+      new LineBasicMaterial({ color, transparent: true, opacity })
+    );
+    mesh.add(l);
+    return l;
+  }
   var _v2 = new Vector3();
   function updateShared(camera2, t8, dirWorld) {
     _v2.copy(dirWorld).transformDirection(camera2.matrixWorldInverse);
@@ -30500,16 +30508,16 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
       pos.setXYZ(i, v.x, v.y, v.z);
     }
     bodyGeo.computeVertexNormals();
-    const body = sketched(bodyGeo, { outline: 0.016, boil: 0.012 });
+    const body = sketched(bodyGeo, { outline: 0.013, boil: 0.012 });
     placed(g, body, 0, 0.62, 0);
     addOutline(body, { thickness: 0.028, opacity: 0.28, boil: 0.03 });
     addOutline(body, { thickness: 0.055, opacity: 0.13, boil: 0.045 });
     const face = new Group();
-    placed(g, face, 0, 0.78, 0.22);
-    const eyeL = placed(face, googly(0.105, 0.014), -0.21, 0.16, 0.3);
-    const eyeR = placed(face, googly(0.105, 0.014), 0.21, 0.16, 0.3);
+    placed(g, face, 0, 0.78, 0.42);
+    const eyeL = placed(face, googly(0.105, 0.014), -0.21, 0.16, 0.34);
+    const eyeR = placed(face, googly(0.105, 0.014), 0.21, 0.16, 0.34);
     const mouth = new Group();
-    placed(face, mouth, 0, -0.24, 0.26);
+    placed(face, mouth, 0, -0.24, 0.38);
     const cave = new Mesh(new SphereGeometry(0.26, 20, 14), basicMat(2367258));
     cave.scale.set(1.15, 0.9, 0.55);
     mouth.add(cave);
@@ -30526,13 +30534,13 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
     const armR = placed(g, new Mesh(armGeo, limbMat), 0.52, 0.72, 0.12);
     armL.rotation.z = 0.9;
     armR.rotation.z = -0.9;
-    addOutline(armL, { thickness: 0.01 });
-    addOutline(armR, { thickness: 0.01 });
+    addLineOutline(armL, { opacity: 0.7 });
+    addLineOutline(armR, { opacity: 0.7 });
     const legGeo = new CapsuleGeometry(0.07, 0.16, 6, 12);
     const legL = placed(g, new Mesh(legGeo, limbMat), -0.2, 0.14, 0.05);
     const legR = placed(g, new Mesh(legGeo, limbMat), 0.2, 0.14, 0.05);
-    addOutline(legL, { thickness: 0.01 });
-    addOutline(legR, { thickness: 0.01 });
+    addLineOutline(legL, { opacity: 0.7 });
+    addLineOutline(legR, { opacity: 0.7 });
     g.userData.shadow = { sx: 1.15, sz: 0.85 };
     return {
       name: "monster",
@@ -30593,12 +30601,12 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
     fin.rotation.z = -Math.PI / 2;
     fin.position.set(0.1, 0, 0);
     tail.add(fin);
-    addOutline(fin, { thickness: 8e-3 });
+    addLineOutline(fin, { angle: 40, opacity: 0.8 });
     const dorsal = new Mesh(new ConeGeometry(0.09, 0.16, 8), hatchMaterial({ boil: 6e-3 }));
     dorsal.scale.set(0.25, 1, 1);
     dorsal.position.set(-0.02, 0.24, 0);
     holder.add(dorsal);
-    addOutline(dorsal, { thickness: 8e-3 });
+    addLineOutline(dorsal, { angle: 40, opacity: 0.8 });
     const eyeL = placed(holder, googly(0.07, 0.01), -0.16, 0.07, 0.14);
     const eyeR = placed(holder, googly(0.07, 0.01), -0.16, 0.07, -0.14);
     eyeL.rotation.y = 0.5;
@@ -30667,17 +30675,17 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
       [0.385, 0.66],
       [0.345, 0.62]
     ].map(([r, y]) => new Vector2(r, y));
-    const cup = sketched(new LatheGeometry(prof, 30), { outline: 0.013, boil: 4e-3 });
+    const cup = sketched(new LatheGeometry(prof, 30), { outline: 8e-3, boil: 4e-3 });
     placed(g, cup, 0, 0.01, 0);
     const handle = new Mesh(new TorusGeometry(0.15, 0.042, 10, 22, Math.PI * 1.2), hatchMaterial({ boil: 4e-3 }));
     handle.position.set(0.47, 0.38, 0);
     handle.rotation.z = -Math.PI / 2 - (Math.PI * 1.2 - Math.PI) / 2;
     g.add(handle);
-    addOutline(handle, { thickness: 0.01 });
+    addLineOutline(handle, { angle: 50, opacity: 0.85 });
     const calmTex = cupFaceTexture(false), surTex = cupFaceTexture(true);
     const faceMat = new MeshBasicMaterial({ map: calmTex, transparent: true, depthWrite: false });
-    const face = new Mesh(new SphereGeometry(0.452, 24, 16, -0.62, 1.24, 0.9, 1.15), faceMat);
-    face.position.y = 0.01;
+    const face = new Mesh(new SphereGeometry(0.452, 24, 16, Math.PI - 0.62, 1.24, 0.9, 1.15), faceMat);
+    face.position.y = 0.02;
     g.add(face);
     const whirlGrp = new Group();
     whirlGrp.rotation.x = -Math.PI / 2;
@@ -30736,7 +30744,7 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
     const g = new Group();
     const S = { loop: -1 };
     const HOME = { x: 0.15, y: 1.5, z: -1.15 };
-    const body = sketched(new SphereGeometry(0.17, 20, 14), { outline: 0.012, boil: 5e-3 });
+    const body = sketched(new SphereGeometry(0.17, 20, 14), { outline: 0.011, boil: 5e-3 });
     body.scale.set(1, 0.95, 1.25);
     g.add(body);
     const head = sketched(new SphereGeometry(0.115, 18, 12), { outline: 0.011, boil: 5e-3 });
@@ -30750,7 +30758,7 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
     tail.scale.set(1, 0.3, 1);
     tail.rotation.x = -Math.PI / 2 - 0.5;
     placed(g, tail, 0, 0.06, -0.24);
-    addOutline(tail, { thickness: 8e-3 });
+    addLineOutline(tail, { angle: 40, opacity: 0.8 });
     const wingGeo = new SphereGeometry(0.16, 14, 10);
     const wingL = new Group(), wingR = new Group();
     placed(g, wingL, -0.13, 0.03, 0);
@@ -30759,12 +30767,12 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
     wl.scale.set(0.75, 0.16, 0.5);
     wl.position.x = -0.16;
     wingL.add(wl);
-    addOutline(wl, { thickness: 8e-3 });
+    addLineOutline(wl, { angle: 40, opacity: 0.7 });
     const wr = new Mesh(wingGeo, hatchMaterial({ boil: 6e-3 }));
     wr.scale.set(0.75, 0.16, 0.5);
     wr.position.x = 0.16;
     wingR.add(wr);
-    addOutline(wr, { thickness: 8e-3 });
+    addLineOutline(wr, { angle: 40, opacity: 0.7 });
     g.userData.shadow = { sx: 0.4, sz: 0.35 };
     return {
       name: "bird",
@@ -30901,7 +30909,7 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
     g.add(tilt);
     const canopy = sketched(
       new SphereGeometry(0.95, 28, 10, 0, Math.PI * 2, 0, Math.PI * 0.42),
-      { outline: 0.013, boil: 4e-3, ambient: 0.32, key: 0.68 }
+      { outline: 0.01, boil: 4e-3, ambient: 0.3, key: 0.62, tint: 16052452 }
     );
     canopy.scale.y = 0.72;
     placed(tilt, canopy, 0, 1.32, 0);
@@ -30919,7 +30927,7 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
     ));
     const pole = new Mesh(new CylinderGeometry(0.028, 0.032, 1.45, 10), hatchMaterial({ boil: 4e-3 }));
     placed(tilt, pole, 0, 0.68, 0);
-    addOutline(pole, { thickness: 9e-3 });
+    addLineOutline(pole, { angle: 50, opacity: 0.85 });
     const handle = new Mesh(new TorusGeometry(0.13, 0.028, 8, 18, Math.PI), hatchMaterial({ boil: 4e-3 }));
     handle.position.set(0, 0.05, 0);
     handle.rotation.z = Math.PI;
@@ -30971,7 +30979,8 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
   }
   function buildNotebook() {
     const g = new Group();
-    const cover = sketched(new BoxGeometry(2.62, 0.07, 1.86), { outline: 0.011, tint: 10327690, boil: 2e-3 });
+    const cover = sketched(new BoxGeometry(2.62, 0.07, 1.86), { outline: 0, tint: 10327690, boil: 2e-3 });
+    addLineOutline(cover, { angle: 20, opacity: 0.8 });
     cover.position.y = 0.035;
     g.add(cover);
     const stack = new Mesh(new BoxGeometry(2.44, 0.05, 1.7), basicMat(15722971));
@@ -31009,12 +31018,12 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
     const shaft = new Mesh(new CylinderGeometry(0.055, 0.055, 1.15, 6), hatchMaterial({ tint: 15918006, boil: 3e-3 }));
     shaft.rotation.z = Math.PI / 2;
     pencil.add(shaft);
-    addOutline(shaft, { thickness: 9e-3 });
+    addLineOutline(shaft, { angle: 40, opacity: 0.7 });
     const tip = new Mesh(new ConeGeometry(0.055, 0.16, 6), hatchMaterial({ tint: 15260098, boil: 3e-3 }));
     tip.rotation.z = -Math.PI / 2;
     tip.position.x = 0.655;
     pencil.add(tip);
-    addOutline(tip, { thickness: 8e-3 });
+    addLineOutline(tip, { angle: 40, opacity: 0.7 });
     const lead = new Mesh(new ConeGeometry(0.018, 0.05, 6), basicMat(DARK));
     lead.rotation.z = -Math.PI / 2;
     lead.position.x = 0.76;
@@ -31023,7 +31032,7 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
     eraser.rotation.z = Math.PI / 2;
     eraser.position.x = -0.62;
     pencil.add(eraser);
-    addOutline(eraser, { thickness: 8e-3 });
+    addLineOutline(eraser, { angle: 40, opacity: 0.7 });
     pencil.position.set(0.18, 0.21, 0.32);
     pencil.rotation.y = 0.5;
     g.add(pencil);
@@ -31046,12 +31055,14 @@ void main(){ gl_FragColor = vec4(uColor, uOpacity); }`;
   function buildTable() {
     const g = new Group();
     const woodOpts = { tint: 15262420, ambient: 0.34, key: 0.66, scale: 1 / 430, boil: 2e-3 };
-    const top = sketched(new BoxGeometry(7.2, 0.34, 4.9), { ...woodOpts, outline: 0.014 });
+    const top = sketched(new BoxGeometry(7.2, 0.34, 4.9), { ...woodOpts, outline: 0 });
+    addLineOutline(top, { angle: 20, opacity: 0.7 });
     top.position.y = -0.17;
     g.add(top);
     const legGeo = new BoxGeometry(0.26, 0.95, 0.26);
     for (const [lx, lz] of [[-3.1, -2], [3.1, -2], [-3.1, 2], [3.1, 2]]) {
-      const leg = sketched(legGeo, woodOpts);
+      const leg = sketched(legGeo, { ...woodOpts, outline: 0 });
+      addLineOutline(leg, { angle: 20, opacity: 0.7 });
       leg.position.set(lx, -0.82, lz);
       g.add(leg);
     }

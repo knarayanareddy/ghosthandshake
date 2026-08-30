@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "esbuild": "0.28.2",
+    "puppeteer": "^25.9.0",
     "three": "0.185.1"
-  }
+  },
+  "type": "module"
 }

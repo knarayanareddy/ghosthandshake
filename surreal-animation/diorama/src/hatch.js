@@ -194,6 +194,15 @@ export function addOutline(mesh, opts = {}) {
   return o;
 }
 
+// line-sketch ink outline (EdgesGeometry) — always thin, great for small parts
+export function addLineOutline(mesh, { angle = 30, opacity = 0.85, color = 0x35312a } = {}) {
+  const l = new THREE.LineSegments(
+    new THREE.EdgesGeometry(mesh.geometry, angle),
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity }));
+  mesh.add(l);
+  return l;
+}
+
 const _v = new THREE.Vector3();
 export function updateShared(camera, t8, dirWorld) {
   _v.copy(dirWorld).transformDirection(camera.matrixWorldInverse);

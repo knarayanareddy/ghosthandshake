@@ -77,7 +77,12 @@ cd diorama
 npm install
 npm run build        # esbuild -> bundle.js (a prebuilt bundle.js is committed)
 node test/smoke.mjs  # headless logic test of the whole ensemble
+node test/render_software.mjs  # software-rasterizer QC frames -> preview/*.ppm
 ```
+
+Note: the sandbox has no GPU/WebGL, so `render_software.mjs` renders approximation
+frames (no textures/AA) to verify composition and animation; the real pencil-stroke
+look is visible in a browser at `/diorama/`.
 
 Serve `surreal-animation/` with `python3 serve.py 8080` and open `/diorama/`.
 
