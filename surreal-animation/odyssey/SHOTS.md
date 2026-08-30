@@ -34,15 +34,29 @@ Narration: N## clip refs — see narration/script.txt
 | S27 | A4 3:29 | 10.0 | ✅ D2_drawer_of_kept_things | drawer opens, inner glow | |
 | S28 | A4 3:39 | 10.0 | ✅ D3_childhood_painting | page spread, finger trace | N19 |
 | S29 | A4 3:49 | 10.0 | ✅ D4_hatch_redrawn | pencil restores stick figure | |
-| S30 | A4 3:59 | 10.0 | ⬜ D5_color_flood | watercolor wash across world | N20 |
-| S31 | A4 4:09 | 10.0 | ⬜ D6_painted_crew_joy | full-color portrait | |
-| S32 | A4 4:19 | 10.0 | ⬜ D7_scrib_at_the_edge | boat at last page edge | N21 |
-| S33 | A4 4:29 | 10.0 | ⬜ D8_the_hand_watches | profile, tiny extra boat | |
-| S34 | C 4:39 | 7.5 | ⬜ E1_beyond_the_page | sail off the edge | N22 |
-| S35 | C 4:46.5 | 6.5 | ⬜ E2_title_card | hand-lettered title | N23 |
+| S30 | A4 3:59 | 10.0 | ✅ D5_color_flood | watercolor wash across world | N20 |
+| S31 | A4 4:09 | 10.0 | ✅ D6_painted_crew_joy | full-color portrait | |
+| S32 | A4 4:19 | 10.0 | ✅ D7_scrib_at_the_edge | boat at last page edge | N21 |
+| S33 | A4 4:29 | 10.0 | ✅ D8_the_hand_watches | profile, tiny extra boat | |
+| S34 | C 4:39 | 7.5 | ✅ E1_beyond_the_page | sail off the edge | N22 |
+| S35 | C 4:46.5 | 6.5 | ✅ E2_title_card | hand-lettered title | N23 |
 | S36 | C 4:53 | 6.0 | ♻️ B6/B7 frame | post-credits cup gag | |
 
-Frame budget: 36 slots — 29 rendered (✅), 6 to render (D5-D8, E1, E2), 1 reuse.
+Frame budget: 36 slots — 36 rendered (35 ✅ + 1 reuse). COMPLETE.
 Build turns: T1 = A0–A8+B1 + N01–N10 (done) · T2 = B2–B9 + C1–C2 + N11–N17 (DONE) ·
-T3 = C3–C5 + D1–D4 + N18–N23 + five-movement score (DONE); D5–D8, E1–E2 slide to T4 · T4 = assembly,
-transitions (color flood / erase dissolve), trailer polish, final mix.
+T3 = C3–C5 + D1–D4 + N18–N23 + five-movement score (DONE) · T4 = D5–E2 frames + assembly
+(DONE — see below).
+
+## FINAL FILM (T4 complete)
+
+`odyssey/sketchbook_odyssey_9x16.mp4` — **The Sketchbook Odyssey**, 5:03.00 (303.0 s),
+1080×1920 @ 24 fps, H.264 High crf19 + AAC 192k stereo, faststart, 282.7 MB.
+Pipeline: `odyssey_build.py` (36 keyframes → animated clips → 3×12-shot chunk merges with
+dip-to-black joints at 84.3 s / 178.3 s) → `finish_odyssey.py` (23-line narration + 5-movement
+score mix → `build/odyssey_mix.wav`) → single-pass concat + grade (eq contrast 1.05 /
+saturation 1.06 / vignette / grain / 1.2 s fade-in, 1.6 s fade-out) + mux. Build runs
+hierarchical — a single 36-input xfade graph fails in ffmpeg; chunks are merged with
+chunk-local input indices.
+QC: full-stream decode 0 errors; stills verified at t = 3 / 84 / 90 / 165 / 178 / 250 / 296
+(incl. title card E2); chunk joints land on the dip-to-black; audio mean −18.4 dB, peak −1.4 dB.
+The 61 s `sketchbook_comes_alive_9x16.mp4` remains a standalone trailer.
