@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Sketchbook Comes Alive — 3D Diorama (PoC)</title>
+<style>
+  :root { color-scheme: light; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #efe9dc;
+    font-family: Georgia, 'Times New Roman', serif; }
+  #c { display: block; width: 100vw; height: 100vh; cursor: grab; }
+  /* graphite grain + vignette overlay */
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; opacity: .55; z-index: 5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.24 0 0 0 0 0.22 0 0 0 0 0.19 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: boil .42s steps(2) infinite;
+  }
+  @keyframes boil { 0% { transform: translate(0,0); } 50% { transform: translate(6px,-5px); } 100% { transform: translate(0,0); } }
+  .vig { position: fixed; inset: 0; pointer-events: none; z-index: 6;
+    box-shadow: inset 0 0 22vmin rgba(62,54,40,.42); }
+  .hud { position: fixed; z-index: 10; user-select: none; }
+  #title { top: 18px; left: 22px; color: #4a4335; }
+  #title h1 { font-size: 19px; margin: 0; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; }
+  #title p { margin: 4px 0 0; font-size: 12.5px; color: #7a715c; letter-spacing: .06em; }
+  #hint { bottom: 16px; left: 50%; transform: translateX(-50%); color: #6e6551;
+    font-size: 12.5px; letter-spacing: .08em; background: rgba(246,242,231,.72);
+    padding: 6px 14px; border-radius: 20px; border: 1px solid #cfc5ac; }
+  #cast { bottom: 52px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 92vw; }
+  #cast button {
+    font-family: inherit; font-size: 12.5px; letter-spacing: .05em; cursor: pointer;
+    color: #453e30; background: rgba(246,242,231,.85); border: 1.5px solid #8b8168;
+    border-radius: 18px; padding: 6px 13px; transition: all .15s ease;
+  }
+  #cast button:hover { background: #453e30; color: #f6f2e7; transform: translateY(-2px); }
+  #err { position: fixed; top: 12px; right: 14px; z-index: 20; color: #8a2f22;
+    font-size: 12px; max-width: 40vw; }
+  #back { top: 18px; right: 18px; }
+  #back a { color: #7a715c; font-size: 12.5px; letter-spacing: .08em; text-decoration: none;
+    border-bottom: 1px dotted #a4977e; }
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="grain"></div>
+  <div class="vig"></div>
+  <div class="hud" id="title">
+    <h1>The Sketchbook Comes Alive</h1>
+    <p>pure-sketch 3D diorama · proof of concept · everything drawn in real time</p>
+  </div>
+  <div class="hud" id="cast">
+    <button data-char="stage">⌂ full stage</button>
+    <button data-char="monster">monster</button>
+    <button data-char="fish">fish</button>
+    <button data-char="cup">coffee</button>
+    <button data-char="bird">bird</button>
+    <button data-char="plane">paper plane</button>
+    <button data-char="umbrella">umbrella</button>
+    <button data-char="notebook">notebook</button>
+  </div>
+  <div class="hud" id="hint">drag to orbit · scroll to zoom · click a character — it reacts</div>
+  <div class="hud" id="back"><a href="../index.html">← back to the film</a></div>
+  <div id="err"></div>
+  <script src="bundle.js"></script>
+</body>
+</html>

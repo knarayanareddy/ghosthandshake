@@ -6,8 +6,8 @@ import http.server, os, re, sys
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
 TYPES = {'.html': 'text/html', '.mp4': 'video/mp4', '.png': 'image/png',
-         '.wav': 'audio/wav', '.js': 'text/javascript', '.css': 'text/css',
-         '.md': 'text/plain'}
+         '.wav': 'audio/wav', '.js': 'text/javascript', '.mjs': 'text/javascript',
+         '.json': 'application/json', '.css': 'text/css', '.md': 'text/plain'}
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -18,7 +18,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if name == '/':
             name = '/index.html'
         path = os.path.normpath(os.path.join(ROOT, name.lstrip('/')))
-        if not path.startswith(ROOT) or not os.path.isfile(path):
+        if not path.startswith(ROOT):
+            return None
+        if os.path.isdir(path):
+            path = os.path.join(path, 'index.html')
+        if not os.path.isfile(path):
             return None
         return path
 

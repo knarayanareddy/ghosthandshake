@@ -1,0 +1,14 @@
+{
+  "name": "sketchbook-diorama",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pure-sketch 3D diorama PoC — The Sketchbook Comes Alive",
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --outfile=bundle.js --log-level=info",
+    "watch": "esbuild src/main.js --bundle --outfile=bundle.js --watch"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.185.1"
+  }
+}

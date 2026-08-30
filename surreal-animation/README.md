@@ -60,9 +60,32 @@ zoom/pan plus sinusoidal handheld sway on a 1.22× overscan canvas), sharpens,
 then assembles the 61.4 s timeline with `xfade` transitions, `eq` grade,
 `vignette` and `noise` film grain.
 
+## Interactive 3D diorama (PoC, `diorama/`)
+
+A real-time, fully procedural **pure-sketch 3D** version of the ensemble —
+monster, fish, coffee cup, bird, paper plane, umbrella — around the open
+notebook, all rendered with custom GLSL: tone-mapped screen-space hatching
+(4 pencil densities in a stroke atlas), boiling vertex jitter (8 fps
+"hand-redrawn" wobble), inverted-hull ink outlines, hatched blob shadows,
+canvas-drawn faces/doodles, and CSS graphite grain. Orbit the table, click
+any character for a reaction (the monster roars, the fish leaps, the coffee
+gasps, the bird loops, the plane barrel-rolls, the umbrella spins out music
+notes), or use the cast buttons for camera fly-tos.
+
+```bash
+cd diorama
+npm install
+npm run build        # esbuild -> bundle.js (a prebuilt bundle.js is committed)
+node test/smoke.mjs  # headless logic test of the whole ensemble
+```
+
+Serve `surreal-animation/` with `python3 serve.py 8080` and open `/diorama/`.
+
 ## Files
 
 - `keyframes/*.png` — 9 AI-generated photoreal keyframes (941×1672, native 9:16)
 - `animate.py` / `soundtrack.py` — fully deterministic rebuild scripts
+- `narration/` — script + TTS clips for the narrated cut
+- `diorama/` — Three.js pure-sketch 3D PoC (source + prebuilt bundle)
 - `sketchbook_comes_alive_9x16.mp4` — the film
 - `build/` — intermediate clips (regenerated on run)
