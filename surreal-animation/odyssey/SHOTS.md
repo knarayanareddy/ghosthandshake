@@ -23,17 +23,17 @@ Narration: N## clip refs — see narration/script.txt
 | S16 | A2 1:56.5 | 8.0 | ✅ B7_stirring_promise | tender two-shot | |
 | S17 | A2 2:04.5 | 9.0 | ✅ B8_siren_beach_conga | lateral pan of dancers | N12 |
 | S18 | A2 2:13.5 | 8.5 | ✅ B9_radio_bell_wake | bird close-up, single note | N13 |
-| S19 | A2 2:22 | 8.5 | ⬜ B10_hug_toll | strait wide → group hug | N14 |
-| S20 | A2 2:30.5 | 8.5 | ⬜ B11_full_crew_rowing | tracking side-shot | |
+| S19 | A2 2:22 | 8.5 | ✅ B10_hug_toll | strait wide → group hug | N14 |
+| S20 | A2 2:30.5 | 8.5 | ✅ B11_full_crew_rowing | tracking side-shot | |
 | S21 | A3 2:39 | 8.0 | ✅ C1_eraser_on_horizon | long-lens dread | N15 |
 | S22 | A3 2:47 | 8.0 | ✅ C2_crumb_rain | gray snow fall | |
-| S23 | A3 2:55 | 8.5 | ⬜ C3_scrib_half_erased | macro, face fading | N16 |
-| S24 | A3 3:03.5 | 8.0 | ⬜ C4_crew_fading | desaturating wide | |
-| S25 | A3 3:11.5 | 7.5 | ⬜ C5_bird_carries_scrib | vertical ascent to lamp | N17 |
-| S26 | A4 3:19 | 10.0 | ⬜ D1_the_hand_gasps | human close-up, kneel | N18 |
-| S27 | A4 3:29 | 10.0 | ⬜ D2_drawer_of_kept_things | drawer opens, inner glow | |
-| S28 | A4 3:39 | 10.0 | ⬜ D3_childhood_painting | page spread, finger trace | N19 |
-| S29 | A4 3:49 | 10.0 | ⬜ D4_hatch_redrawn | pencil restores stick figure | |
+| S23 | A3 2:55 | 8.5 | ✅ C3_scrib_half_erased | macro, face fading | N16 |
+| S24 | A3 3:03.5 | 8.0 | ✅ C4_crew_fading | desaturating wide | |
+| S25 | A3 3:11.5 | 7.5 | ✅ C5_bird_carries_scrib | vertical ascent to lamp | N17 |
+| S26 | A4 3:19 | 10.0 | ✅ D1_the_hand_gasps | human close-up, kneel | N18 |
+| S27 | A4 3:29 | 10.0 | ✅ D2_drawer_of_kept_things | drawer opens, inner glow | |
+| S28 | A4 3:39 | 10.0 | ✅ D3_childhood_painting | page spread, finger trace | N19 |
+| S29 | A4 3:49 | 10.0 | ✅ D4_hatch_redrawn | pencil restores stick figure | |
 | S30 | A4 3:59 | 10.0 | ⬜ D5_color_flood | watercolor wash across world | N20 |
 | S31 | A4 4:09 | 10.0 | ⬜ D6_painted_crew_joy | full-color portrait | |
 | S32 | A4 4:19 | 10.0 | ⬜ D7_scrib_at_the_edge | boat at last page edge | N21 |
@@ -42,7 +42,7 @@ Narration: N## clip refs — see narration/script.txt
 | S35 | C 4:46.5 | 6.5 | ⬜ E2_title_card | hand-lettered title | N23 |
 | S36 | C 4:53 | 6.0 | ♻️ B6/B7 frame | post-credits cup gag | |
 
-Frame budget: 36 slots — 20 rendered (✅), 15 to render, 1 reuse.
+Frame budget: 36 slots — 29 rendered (✅), 6 to render (D5-D8, E1, E2), 1 reuse.
 Build turns: T1 = A0–A8+B1 + N01–N10 (done) · T2 = B2–B9 + C1–C2 + N11–N17 (DONE) ·
-T3 = C3–C5 + D1–D8 + E1–E2 + N18–N23 + music suite · T4 = assembly,
+T3 = C3–C5 + D1–D4 + N18–N23 + five-movement score (DONE); D5–D8, E1–E2 slide to T4 · T4 = assembly,
 transitions (color flood / erase dissolve), trailer polish, final mix.
