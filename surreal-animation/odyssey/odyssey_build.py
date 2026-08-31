@@ -9,7 +9,7 @@ FF = os.path.expanduser("~/bin/ffmpeg")
 ROOT = os.path.dirname(os.path.abspath(__file__))
 FR = os.path.join(ROOT, "frames")
 NAR = os.path.join(ROOT, "narration")
-BUILD = os.path.join(ROOT, "build")
+BUILD = os.path.join(ROOT, "work")
 os.makedirs(BUILD, exist_ok=True)
 
 W, H, FPS = 1080, 1920, 24

@@ -285,7 +285,7 @@ fi, fo = int(1.5 * SR), int(4.0 * SR)
 mix[:, :fi] *= np.linspace(0, 1, fi)
 mix[:, -fo:] *= np.linspace(1, 0, fo) ** 1.4
 
-out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build", "score.wav")
+out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "work", "score.wav")
 os.makedirs(os.path.dirname(out), exist_ok=True)
 data = (mix.T * 32767).astype(np.int16)
 with wave.open(out, "w") as w:

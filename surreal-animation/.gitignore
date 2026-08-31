@@ -2,3 +2,5 @@ build/
 __pycache__/
 *.mp4
 narration/*.wav
+work/
+odyssey/work/
